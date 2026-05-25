@@ -1,0 +1,57 @@
+# ============================================================================
+# Medusa — .gitignore
+# ============================================================================
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Déploiements (données, configs générées, volumes)
+medusa_deployments/
+
+# Fichiers de credentials générés
+credentials.txt
+*.env
+!.env.example
+
+# Certificats et clés
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+
+# Logs
+*.log
+logs/
+/var/log/
+
+# Données Docker persistées
+data/
+pcap/
+raw/
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/

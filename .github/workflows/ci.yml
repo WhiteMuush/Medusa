@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -e SC1091 -e SC2086 -e SC2155
+        with:
+          scandir: ./
+          additional_files: medusa.sh
+          ignore_paths: medusa_deployments
+
+  syntax:
+    name: Bash syntax (bash -n)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check bash syntax on every .sh
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r -d '' file; do
+            if ! bash -n "$file"; then
+              echo "::error file=$file::bash -n reported a syntax error"
+              fail=1
+            fi
+          done < <(find . -type f -name '*.sh' -not -path './medusa_deployments/*' -print0)
+          exit "$fail"
+
+  smoke:
+    name: Source-chain smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source every lib/ file and assert key functions exist
+        run: |
+          set -uo pipefail
+          export MEDUSA_HOME="$PWD"
+          # Source in the same order as medusa.sh
+          for f in lib/core.sh lib/deploy_soc.sh lib/deploy_grc.sh \
+                   lib/deploy_integration.sh lib/deploy_ot.sh \
+                   lib/run_cli.sh lib/modules.sh; do
+            # shellcheck disable=SC1090
+            source "$f" || { echo "::error::failed to source $f"; exit 1; }
+          done
+
+          expected_functions=(
+            log_message tool_dir is_tool_installed get_tool_status
+            docker_up docker_down docker_restart docker_remove docker_logs
+            compose_in_dir run_in_dir
+            ensure_command_absent mark_cli_installed
+            prompt_value prompt_yesno
+            register_tool dispatch_deploy dispatch_run
+            main_loop initialize_environment handle_selection
+          )
+          missing=0
+          for fn in "${expected_functions[@]}"; do
+            if ! declare -F "$fn" >/dev/null; then
+              echo "::error::missing function: $fn"
+              missing=1
+            fi
+          done
+
+          # Every tool registered must have a deploy_* dispatcher
+          for tool in "${!TOOL_DESC[@]}"; do
+            fn="deploy_${tool//-/_}"
+            if ! declare -F "$fn" >/dev/null; then
+              echo "::error::tool '$tool' is registered but $fn() is missing"
+              missing=1
+            fi
+          done
+
+          exit "$missing"

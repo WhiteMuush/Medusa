@@ -1,0 +1,60 @@
+name: New tool request
+description: Propose a new open-source security tool to add to Medusa's catalog.
+title: "[tool] "
+labels: ["enhancement", "new-tool"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Medusa stays curated and small. New tools should fit one of the
+        existing categories (SOC, GRC, Integration, OT) and be deployable
+        either via Docker Compose or as a CLI installer.
+  - type: input
+    id: name
+    attributes:
+      label: Tool name
+      placeholder: foobar
+    validations:
+      required: true
+  - type: input
+    id: upstream
+    attributes:
+      label: Upstream repository
+      placeholder: https://github.com/org/foobar
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - SOC (Detection & Response)
+        - GRC (Governance & Compliance)
+        - Integration (IAM, Cloud, CI/CD)
+        - OT (Industrial Security)
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Deployment type
+      options:
+        - docker (compose file)
+        - cli (apt / pip / curl / go binary)
+        - vm (ISO / manual instructions)
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does Medusa need this?
+      description: What gap does it fill? What does it do that current Medusa tools don't?
+    validations:
+      required: true
+  - type: textarea
+    id: license
+    attributes:
+      label: License
+      description: Must be open source. Closed-source / source-available tools are not accepted.
+    validations:
+      required: true
