@@ -1,4 +1,5 @@
 # lib/run_cli.sh — Sous-menus de lancement des outils CLI
+# shellcheck shell=bash
 # Sourcé par medusa.sh — ne pas exécuter directement
 [[ -n "${_RUN_CLI_SH_LOADED:-}" ]] && return 0
 _RUN_CLI_SH_LOADED=1
