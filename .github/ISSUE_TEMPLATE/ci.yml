@@ -1,2 +1,4 @@
-env:
-  SHELLCHECK_OPTS: -e SC1091 -e SC2086 -e SC2155 -e SC2148 -e SC2120 -e SC2119 -e SC2207 -e SC2034 -e SC2059 -e SC2183
+- name: Run ShellCheck
+  uses: ludeeus/action-shellcheck@master
+  with:
+    ignore: SC1091 SC2086 SC2155 SC2119 SC2120 SC2207 SC2034 SC2059 SC2183
