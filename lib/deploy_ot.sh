@@ -1,5 +1,6 @@
 # lib/deploy_ot.sh — Déploiement des outils OT / Industrial Security
 # Sourcé par medusa.sh — ne pas exécuter directement
+# shellcheck shell=bash
 [[ -n "${_DEPLOY_OT_SH_LOADED:-}" ]] && return 0
 _DEPLOY_OT_SH_LOADED=1
 

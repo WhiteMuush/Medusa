@@ -1,5 +1,6 @@
 # lib/deploy_integration.sh — Déploiement des outils Integration (IAM, Cloud, CI/CD)
 # Sourcé par medusa.sh — ne pas exécuter directement
+# shellcheck shell=bash
 [[ -n "${_DEPLOY_INTEGRATION_SH_LOADED:-}" ]] && return 0
 _DEPLOY_INTEGRATION_SH_LOADED=1
 

@@ -1,5 +1,6 @@
 # lib/deploy_grc.sh — Déploiement des outils GRC / Governance & Compliance
 # Sourcé par medusa.sh — ne pas exécuter directement
+# shellcheck shell=bash
 [[ -n "${_DEPLOY_GRC_SH_LOADED:-}" ]] && return 0
 _DEPLOY_GRC_SH_LOADED=1
 

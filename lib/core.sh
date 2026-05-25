@@ -1,5 +1,6 @@
 # lib/core.sh — Couleurs, variables globales, utilitaires, Docker, registre des outils
 # Sourcé par medusa.sh — ne pas exécuter directement
+# shellcheck shell=bash
 [[ -n "${_CORE_SH_LOADED:-}" ]] && return 0
 _CORE_SH_LOADED=1
 

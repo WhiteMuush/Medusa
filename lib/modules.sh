@@ -1,5 +1,6 @@
 # lib/modules.sh — Menus interactifs, dashboard, gestion des sessions
 # Sourcé par medusa.sh — ne pas exécuter directement
+# shellcheck shell=bash
 [[ -n "${_MODULES_SH_LOADED:-}" ]] && return 0
 _MODULES_SH_LOADED=1
 
