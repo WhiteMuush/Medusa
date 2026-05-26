@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# medusa.sh — Point d'entrée principal. Toute la logique est dans lib/
-# -e volontairement absent : trop agressif pour un menu interactif (un read
-# qui retourne 1, un grep sans match... tuent la boucle principale).
+# medusa.sh — Main entry point. All logic lives in lib/
+# -e deliberately omitted: too aggressive for an interactive menu (a failing
+# read, a grep with no match... would kill the main loop).
 set -uo pipefail
 
-# Résoudre le répertoire du script (même si lancé depuis un autre dossier).
-# MEDUSA_HOME est ancré ici pour que les fonctions internes utilisent des
-# chemins absolus, même après un `cd` ailleurs dans le script.
+# Resolve the script directory (even when launched from a different folder).
+# MEDUSA_HOME is anchored here so internal functions use absolute paths,
+# even after a `cd` elsewhere in the script.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export MEDUSA_HOME="${SCRIPT_DIR}"
 
 # ============================================================================
-# CHARGEMENT DES MODULES (ordre obligatoire)
+# MODULE LOADING (order is mandatory)
 # ============================================================================
 # shellcheck source=lib/core.sh
 source "${SCRIPT_DIR}/lib/core.sh"
@@ -29,27 +29,27 @@ source "${SCRIPT_DIR}/lib/run_cli.sh"
 source "${SCRIPT_DIR}/lib/modules.sh"
 
 # ============================================================================
-# CLI — usage & list (helpers propres au point d'entrée)
+# CLI — usage & list (helpers local to the entry point)
 # ============================================================================
 
 usage() {
     cat << 'USAGE'
-Usage: medusa [commande] [options]
+Usage: medusa [command] [options]
 
-Commandes:
-  menu                      Menu interactif (defaut)
-  deploy <outil>            Deployer un outil
-  start <outil|all>         Demarrer un outil ou tous
-  stop <outil|all>          Arreter un outil ou tous
-  restart <outil>           Redemarrer un outil
-  status [outil]            Afficher le status
-  logs <outil> [lignes]     Afficher les logs
-  remove <outil>            Supprimer un outil
-  list [categorie]          Lister les outils (soc, grc, integration, ot)
-  check                     Verifier les prerequis
-  help                      Cette aide
+Commands:
+  menu                      Interactive menu (default)
+  deploy <tool>             Deploy a tool
+  start <tool|all>          Start a tool or all tools
+  stop <tool|all>           Stop a tool or all tools
+  restart <tool>            Restart a tool
+  status [tool]             Show status
+  logs <tool> [lines]       Show logs
+  remove <tool>             Remove a tool
+  list [category]           List tools (soc, grc, integration, ot)
+  check                     Check prerequisites
+  help                      This help
 
-Exemples:
+Examples:
   medusa deploy wazuh
   medusa start opencti
   medusa status
@@ -60,7 +60,7 @@ USAGE
 cli_list_tools() {
     local filter="${1:-all}"
     echo ""
-    printf "%b  %-20s %-14s %-8s %s%b\n" "$BOLD" "NOM" "CATEGORIE" "TYPE" "DESCRIPTION" "$RESET"
+    printf "%b  %-20s %-14s %-8s %s%b\n" "$BOLD" "NAME" "CATEGORY" "TYPE" "DESCRIPTION" "$RESET"
     ui_rule
     for tool in $(echo "${!TOOL_DESC[@]}" | tr ' ' '\n' | sort); do
         if [[ "$filter" == "all" || "${TOOL_CAT[$tool]}" == "$filter" ]]; then
@@ -94,19 +94,19 @@ main() {
             ;;
 
         deploy|install)
-            local tool="${1:?Usage: medusa deploy <outil>}"
+            local tool="${1:?Usage: medusa deploy <tool>}"
             ENV_NAME="${ENV_NAME:-default}"
             TOOLS_DIR="${BASE_DIR}/${ENV_NAME}"
             mkdir -p "$TOOLS_DIR"
             if [[ -z "${TOOL_DESC[$tool]+_}" ]]; then
-                log_message "error" "Outil inconnu: ${tool}"
+                log_message "error" "Unknown tool: ${tool}"
                 exit 1
             fi
             dispatch_deploy "$tool"
             ;;
 
         start)
-            local target="${1:?Usage: medusa start <outil|all>}"
+            local target="${1:?Usage: medusa start <tool|all>}"
             ENV_NAME="${ENV_NAME:-default}"
             TOOLS_DIR="${BASE_DIR}/${ENV_NAME}"
             if [[ "$target" == "all" ]]; then
@@ -117,7 +117,7 @@ main() {
             ;;
 
         stop)
-            local target="${1:?Usage: medusa stop <outil|all>}"
+            local target="${1:?Usage: medusa stop <tool|all>}"
             ENV_NAME="${ENV_NAME:-default}"
             TOOLS_DIR="${BASE_DIR}/${ENV_NAME}"
             if [[ "$target" == "all" ]]; then
@@ -128,7 +128,7 @@ main() {
             ;;
 
         restart)
-            local tool="${1:?Usage: medusa restart <outil>}"
+            local tool="${1:?Usage: medusa restart <tool>}"
             ENV_NAME="${ENV_NAME:-default}"
             TOOLS_DIR="${BASE_DIR}/${ENV_NAME}"
             docker_restart "$tool"
@@ -148,7 +148,7 @@ main() {
         logs)
             ENV_NAME="${ENV_NAME:-default}"
             TOOLS_DIR="${BASE_DIR}/${ENV_NAME}"
-            local tool="${1:?Usage: medusa logs <outil>}"
+            local tool="${1:?Usage: medusa logs <tool>}"
             local lines="${2:-100}"
             docker_logs "$tool" "$lines"
             ;;
@@ -156,7 +156,7 @@ main() {
         remove|uninstall)
             ENV_NAME="${ENV_NAME:-default}"
             TOOLS_DIR="${BASE_DIR}/${ENV_NAME}"
-            local tool="${1:?Usage: medusa remove <outil>}"
+            local tool="${1:?Usage: medusa remove <tool>}"
             docker_remove "$tool"
             ;;
 
@@ -180,7 +180,7 @@ main() {
             ;;
 
         *)
-            log_message "error" "Commande inconnue: ${cmd}"
+            log_message "error" "Unknown command: ${cmd}"
             usage
             exit 1
             ;;

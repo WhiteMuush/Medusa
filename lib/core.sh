@@ -1,5 +1,5 @@
-# lib/core.sh — Couleurs, variables globales, utilitaires, Docker, registre des outils
-# Sourcé par medusa.sh — ne pas exécuter directement
+# lib/core.sh — Colors, global variables, utilities, Docker helpers, tool registry
+# Sourced by medusa.sh — do not execute directly
 # shellcheck shell=bash
 [[ -n "${_CORE_SH_LOADED:-}" ]] && return 0
 _CORE_SH_LOADED=1
@@ -10,7 +10,7 @@ _CORE_SH_LOADED=1
 _def() {
     declare -p "$1" &>/dev/null && return
     local val="$2"
-    # Fallback ANSI si tput a échoué (val vide)
+    # ANSI fallback if tput failed (empty val)
     if [[ -z "$val" ]]; then
         case "$1" in
             RESET)          val=$'\e[0m'  ;;
@@ -57,9 +57,9 @@ unset -f _def
 # GLOBAL VARIABLES
 # ============================================================================
 declare -p SCRIPT_VERSION &>/dev/null || readonly SCRIPT_VERSION="${BRIGHT_GREEN}version 0.1.0"
-declare -p SCRIPT_NAME    &>/dev/null || readonly SCRIPT_NAME="Medusa, le regard qui neutralise vos failles."
-# BASE_DIR doit être absolu : sinon, après le premier `cd` (docker compose,
-# clone d'un dépôt, etc.) tous les `tool_dir` retournent des chemins erronés.
+declare -p SCRIPT_NAME    &>/dev/null || readonly SCRIPT_NAME="Medusa, the gaze that neutralizes your vulnerabilities."
+# BASE_DIR must be absolute: after the first `cd` (docker compose, repo clone,
+# etc.) all `tool_dir` calls would return wrong paths otherwise.
 declare -p BASE_DIR       &>/dev/null || readonly BASE_DIR="${MEDUSA_HOME:-$PWD}/medusa_deployments"
 declare -p UI_WIDTH       &>/dev/null || readonly UI_WIDTH=62
 COMPOSE_CMD=""
@@ -71,7 +71,7 @@ TOOLS_DIR=""
 # ============================================================================
 
 # pip_install <package> [package2 ...]
-# Installe via pipx si disponible, sinon pip3 avec flags compatibles Debian/Ubuntu 12+
+# Installs via pipx if available, otherwise pip3 with Debian/Ubuntu 12+ flags
 pip_install() {
     if command_exists pipx; then
         for pkg in "$@"; do
@@ -80,7 +80,7 @@ pip_install() {
     elif command_exists pip3; then
         pip3 install --break-system-packages --ignore-installed "$@"
     else
-        log_message "error" "pip3 et pipx sont absents"
+        log_message "error" "pip3 and pipx are both missing"
         return 1
     fi
 }
@@ -128,7 +128,7 @@ gen_uuid() {
 
 confirm() {
     local msg="${1:-Continue?}"
-    read -rp "  ${YELLOW}[?]${RESET} ${msg} [o/N]: " reply
+    read -rp "  ${YELLOW}[?]${RESET} ${msg} [y/N]: " reply
     [[ "$reply" =~ ^[oOyY]$ ]]
 }
 
@@ -176,7 +176,7 @@ ensure_command_absent() {
     local cmd="$1" version=""
     if command_exists "$cmd"; then
         version=$("$cmd" --version 2>&1 | head -1)
-        log_message "warning" "${cmd} deja installe: ${version}"
+        log_message "warning" "${cmd} already installed: ${version}"
         wait_enter
         return 1
     fi
@@ -194,7 +194,7 @@ mark_cli_installed() {
 
 wait_enter() {
     echo ""
-    read -rp "  ${DIM}Appuyez sur Entree pour continuer...${RESET}"
+    read -rp "  ${DIM}Press Enter to continue...${RESET}"
 }
 
 detect_compose_cmd() {
@@ -300,27 +300,27 @@ check_dependencies() {
     if [[ ${#missing[@]} -gt 0 || ${#missing_rec[@]} -gt 0 ]]; then
         clear_screen
         if [[ ${#missing[@]} -gt 0 ]]; then
-            log_message "error" "Prerequisites critiques manquants:"
+            log_message "error" "Missing critical prerequisites:"
             for tool in "${missing[@]}"; do
                 echo -e "    ${RED}[-]${RESET} $tool"
             done
             echo ""
         fi
         if [[ ${#missing_rec[@]} -gt 0 ]]; then
-            log_message "warning" "Outils recommandes manquants:"
+            log_message "warning" "Missing recommended tools:"
             for tool in "${missing_rec[@]}"; do
                 echo -e "    ${YELLOW}[!]${RESET} $tool"
             done
             echo ""
         fi
-        echo "  ${DIM}Medusa fonctionnera avec des capacites reduites.${RESET}"
+        echo "  ${DIM}Medusa will run with reduced capabilities.${RESET}"
         echo ""
-        read -rp "  ${DIM}Appuyez sur Entree pour continuer...${RESET}"
+        read -rp "  ${DIM}Press Enter to continue...${RESET}"
     fi
 }
 
 # ============================================================================
-# DOCKER MANAGEMENT (générique)
+# DOCKER MANAGEMENT (generic)
 # ============================================================================
 
 tool_dir() {
@@ -332,15 +332,15 @@ is_tool_installed() {
     local dir
     dir=$(tool_dir "$tool")
 
-    # Marqueur Medusa (docker-compose.yml ou .installed)
+    # Medusa marker (docker-compose.yml or .installed)
     if [[ -d "$dir" ]] && { [[ -f "${dir}/docker-compose.yml" ]] || [[ -f "${dir}/.installed" ]]; }; then
         return 0
     fi
 
-    # Outil CLI déjà présent sur le système (installé hors Medusa)
+    # CLI tool already present on the system (installed outside Medusa)
     if [[ "${TOOL_TYPE[$tool]:-}" == "cli" ]]; then
         local bin="${tool//-/_}"
-        # Cas particuliers : nom du binaire différent du nom de l'outil
+        # Special cases: binary name differs from tool name
         case "$tool" in
             sigma)      bin="sigma" ;;
             openscap)   bin="oscap" ;;
@@ -350,7 +350,7 @@ is_tool_installed() {
             *) bin="$tool" ;;
         esac
         if command_exists "$bin"; then
-            # Créer le marqueur pour que Medusa s'en souvienne
+            # Create the marker so Medusa remembers it
             mkdir -p "$dir"
             touch "${dir}/.installed"
             return 0
@@ -399,7 +399,7 @@ get_tool_status() {
 
 _require_compose() {
     if [[ -z "$COMPOSE_CMD" ]]; then
-        log_message "error" "docker compose non disponible — installez Docker Desktop ou docker-compose"
+        log_message "error" "docker compose not available — install Docker Desktop or docker-compose"
         return 1
     fi
     return 0
@@ -411,12 +411,12 @@ docker_up() {
     dir=$(tool_dir "$tool")
     _require_compose || return 1
     if [[ ! -f "${dir}/docker-compose.yml" ]]; then
-        log_message "error" "Compose file introuvable pour $tool"
+        log_message "error" "Compose file not found for $tool"
         return 1
     fi
-    log_message "step" "Demarrage de ${tool}..."
+    log_message "step" "Starting ${tool}..."
     compose_in_dir "$dir" up -d
-    log_message "success" "${tool} demarre"
+    log_message "success" "${tool} started"
 }
 
 docker_down() {
@@ -425,12 +425,12 @@ docker_down() {
     dir=$(tool_dir "$tool")
     _require_compose || return 1
     if [[ ! -f "${dir}/docker-compose.yml" ]]; then
-        log_message "error" "Compose file introuvable pour $tool"
+        log_message "error" "Compose file not found for $tool"
         return 1
     fi
-    log_message "step" "Arret de ${tool}..."
+    log_message "step" "Stopping ${tool}..."
     compose_in_dir "$dir" down
-    log_message "success" "${tool} arrete"
+    log_message "success" "${tool} stopped"
 }
 
 docker_status() {
@@ -439,7 +439,7 @@ docker_status() {
     dir=$(tool_dir "$tool")
     _require_compose || return 1
     if [[ ! -f "${dir}/docker-compose.yml" ]]; then
-        log_message "warning" "Pas un outil Docker"
+        log_message "warning" "Not a Docker tool"
         return 1
     fi
     compose_in_dir "$dir" ps
@@ -452,7 +452,7 @@ docker_logs() {
     dir=$(tool_dir "$tool")
     _require_compose || return 1
     if [[ ! -f "${dir}/docker-compose.yml" ]]; then
-        log_message "error" "Compose file introuvable pour $tool"
+        log_message "error" "Compose file not found for $tool"
         return 1
     fi
     compose_in_dir "$dir" logs --tail="$lines" -f
@@ -464,12 +464,12 @@ docker_restart() {
     dir=$(tool_dir "$tool")
     _require_compose || return 1
     if [[ ! -f "${dir}/docker-compose.yml" ]]; then
-        log_message "error" "Compose file introuvable pour $tool"
+        log_message "error" "Compose file not found for $tool"
         return 1
     fi
-    log_message "step" "Redemarrage de ${tool}..."
+    log_message "step" "Restarting ${tool}..."
     compose_in_dir "$dir" restart
-    log_message "success" "${tool} redemarre"
+    log_message "success" "${tool} restarted"
 }
 
 docker_remove() {
@@ -477,15 +477,15 @@ docker_remove() {
     local dir
     dir=$(tool_dir "$tool")
     if [[ ! -d "$dir" ]]; then
-        log_message "warning" "${tool} n'est pas installe"
+        log_message "warning" "${tool} is not installed"
         return 0
     fi
-    if confirm "Supprimer ${tool} et toutes ses donnees ?"; then
+    if confirm "Remove ${tool} and all its data?"; then
         if [[ -f "${dir}/docker-compose.yml" ]] && _require_compose; then
             compose_in_dir "$dir" down -v --remove-orphans 2>/dev/null || true
         fi
         rm -rf "$dir"
-        log_message "success" "${tool} supprime"
+        log_message "success" "${tool} removed"
     fi
 }
 
@@ -505,7 +505,7 @@ save_credentials() {
         done
     } > "$creds_file"
     chmod 600 "$creds_file"
-    log_message "info" "Identifiants sauvegardes dans ${creds_file}"
+    log_message "info" "Credentials saved to ${creds_file}"
 }
 
 # ============================================================================
@@ -523,47 +523,47 @@ register_tool() {
 }
 
 # --- SOC ---
-register_tool "wazuh"          "soc" "docker" "SIEM/XDR - Detection, reponse, conformite"
-register_tool "security-onion" "soc" "vm"     "NDR - Surveillance reseau (Suricata+Zeek)"
-register_tool "suricata"       "soc" "docker" "IDS/IPS reseau hautes performances"
-register_tool "zeek"           "soc" "docker" "Analyse de trafic reseau passive"
-register_tool "opencti"        "soc" "docker" "Plateforme CTI (renseignement menaces)"
-register_tool "misp"           "soc" "docker" "Partage d'indicateurs de compromission"
-register_tool "dfir-iris"      "soc" "docker" "Gestion de cas / investigation forensique"
-register_tool "cortex"         "soc" "docker" "Enrichissement d'observables & reponse"
-register_tool "velociraptor"   "soc" "docker" "Forensique endpoint & threat hunting"
-register_tool "shuffle"        "soc" "docker" "SOAR - Orchestration & automatisation"
-register_tool "yara"           "soc" "cli"    "Regles de detection de malwares"
-register_tool "grr"            "soc" "docker" "Reponse a incident a distance (Google)"
-register_tool "arkime"         "soc" "docker" "Capture & indexation de paquets reseau"
-register_tool "sigma"          "soc" "cli"    "Regles de detection generiques"
+register_tool "wazuh"          "soc" "docker" "SIEM/XDR - Detection, response, compliance"
+register_tool "security-onion" "soc" "vm"     "NDR - Network monitoring (Suricata+Zeek)"
+register_tool "suricata"       "soc" "docker" "High-performance network IDS/IPS"
+register_tool "zeek"           "soc" "docker" "Passive network traffic analysis"
+register_tool "opencti"        "soc" "docker" "CTI platform (threat intelligence)"
+register_tool "misp"           "soc" "docker" "Indicators of compromise sharing"
+register_tool "dfir-iris"      "soc" "docker" "Case management / forensic investigation"
+register_tool "cortex"         "soc" "docker" "Observable enrichment & response"
+register_tool "velociraptor"   "soc" "docker" "Endpoint forensics & threat hunting"
+register_tool "shuffle"        "soc" "docker" "SOAR - Orchestration & automation"
+register_tool "yara"           "soc" "cli"    "Malware detection rules"
+register_tool "grr"            "soc" "docker" "Remote incident response (Google)"
+register_tool "arkime"         "soc" "docker" "Network packet capture & indexing"
+register_tool "sigma"          "soc" "cli"    "Generic detection rules"
 
 # --- GRC ---
-register_tool "eramba"         "grc" "docker" "GRC - Politiques, risques, conformite"
-register_tool "ciso-assistant" "grc" "docker" "GRC leger - Multi-frameworks conformite"
-register_tool "simplerisk"     "grc" "docker" "Gestion des risques (registres, scoring)"
-register_tool "openscap"       "grc" "cli"    "Evaluation conformite & durcissement"
-register_tool "gophish"        "grc" "docker" "Simulation de phishing & sensibilisation"
+register_tool "eramba"         "grc" "docker" "GRC - Policies, risks, compliance"
+register_tool "ciso-assistant" "grc" "docker" "Lightweight GRC - Multi-framework compliance"
+register_tool "simplerisk"     "grc" "docker" "Risk management (registers, scoring)"
+register_tool "openscap"       "grc" "cli"    "Compliance evaluation & hardening"
+register_tool "gophish"        "grc" "docker" "Phishing simulation & awareness"
 
 # --- Integration ---
-register_tool "keycloak"       "integration" "docker" "IAM - SSO, MFA, federation identites"
-register_tool "teleport"       "integration" "cli"    "PAM - Acces privileges SSH/K8s/DB"
-register_tool "vault"          "integration" "docker" "Gestionnaire de secrets"
-register_tool "trivy"          "integration" "cli"    "Scanner vulnerabilites containers/IaC"
-register_tool "semgrep"        "integration" "cli"    "SAST - Analyse statique de code"
-register_tool "owasp-zap"      "integration" "docker" "DAST - Scanner securite web"
-register_tool "gitleaks"       "integration" "cli"    "Detection de secrets dans les repos Git"
-register_tool "checkov"        "integration" "cli"    "Analyse statique IaC (Terraform, K8s)"
-register_tool "prowler"        "integration" "cli"    "Audit securite cloud (AWS/Azure/GCP)"
-register_tool "scoutsuite"     "integration" "cli"    "Audit multi-cloud"
-register_tool "falco"          "integration" "docker" "Detection menaces runtime cloud-native"
+register_tool "keycloak"       "integration" "docker" "IAM - SSO, MFA, identity federation"
+register_tool "teleport"       "integration" "cli"    "PAM - Privileged access SSH/K8s/DB"
+register_tool "vault"          "integration" "docker" "Secrets manager"
+register_tool "trivy"          "integration" "cli"    "Container/IaC vulnerability scanner"
+register_tool "semgrep"        "integration" "cli"    "SAST - Static code analysis"
+register_tool "owasp-zap"      "integration" "docker" "DAST - Web security scanner"
+register_tool "gitleaks"       "integration" "cli"    "Secret detection in Git repos"
+register_tool "checkov"        "integration" "cli"    "Static IaC analysis (Terraform, K8s)"
+register_tool "prowler"        "integration" "cli"    "Cloud security audit (AWS/Azure/GCP)"
+register_tool "scoutsuite"     "integration" "cli"    "Multi-cloud audit"
+register_tool "falco"          "integration" "docker" "Cloud-native runtime threat detection"
 
 # --- OT ---
-register_tool "malcolm"        "ot" "cli"    "Analyse trafic reseau OT (CISA)"
-register_tool "grfics"         "ot" "vm"     "Simulation SCADA/ICS (lab entrainement)"
-register_tool "nmap"           "ot" "cli"    "Cartographie reseau & scripts NSE"
-register_tool "openvas"        "ot" "docker" "Scanner de vulnerabilites reseau"
-register_tool "grassmarlin"    "ot" "vm"     "Cartographie passive reseaux ICS (NSA)"
+register_tool "malcolm"        "ot" "cli"    "OT network traffic analysis (CISA)"
+register_tool "grfics"         "ot" "vm"     "SCADA/ICS simulation (training lab)"
+register_tool "nmap"           "ot" "cli"    "Network mapping & NSE scripts"
+register_tool "openvas"        "ot" "docker" "Network vulnerability scanner"
+register_tool "grassmarlin"    "ot" "vm"     "Passive ICS network mapping (NSA)"
 
 # ============================================================================
 # DISPATCH DEPLOY
@@ -576,6 +576,6 @@ dispatch_deploy() {
     if declare -f "$func" &>/dev/null; then
         $func
     else
-        log_message "error" "Fonction de deploiement non trouvee pour ${tool}"
+        log_message "error" "No deployment function found for ${tool}"
     fi
 }

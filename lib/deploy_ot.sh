@@ -1,5 +1,5 @@
-# lib/deploy_ot.sh — Déploiement des outils OT / Industrial Security
-# Sourcé par medusa.sh — ne pas exécuter directement
+# lib/deploy_ot.sh — Deployment of OT / Industrial Security tools
+# Sourced by medusa.sh — do not execute directly
 # shellcheck shell=bash
 [[ -n "${_DEPLOY_OT_SH_LOADED:-}" ]] && return 0
 _DEPLOY_OT_SH_LOADED=1
@@ -8,27 +8,27 @@ deploy_malcolm() {
     local dir
     dir=$(tool_dir "malcolm")
 
-    log_message "step" "Deploiement de Malcolm (analyse trafic OT - CISA)..."
+    log_message "step" "Deploying Malcolm (OT network traffic analysis - CISA)..."
     git clone --depth 1 https://github.com/cisagov/Malcolm.git "$dir"
 
     touch "${dir}/.installed"
 
-    log_message "info" "Installation des dependances Python de Malcolm..."
+    log_message "info" "Installing Malcolm Python dependencies..."
     pip_install "ruamel.yaml" "python-dotenv" 2>/dev/null || true
-    # Fallback apt pour les environnements Debian/Ubuntu externally-managed
+    # apt fallback for Debian/Ubuntu externally-managed environments
     apt-get install -y -qq python3-ruamel.yaml python3-dotenv 2>/dev/null || true
 
     show_access_info "Malcolm" \
         "Config:    python3 ${dir}/scripts/install.py" \
         "Start:     python3 ${dir}/scripts/start.py" \
-        "Protocoles: Modbus, DNP3, BACnet, EtherNet/IP, S7comm" \
-        "Integre:   Suricata + Zeek + Arkime"
+        "Protocols: Modbus, DNP3, BACnet, EtherNet/IP, S7comm" \
+        "Includes:  Suricata + Zeek + Arkime"
 
-    log_message "success" "Malcolm clone. Lancez le script de configuration depuis le menu."
+    log_message "success" "Malcolm cloned. Run the configuration script from the menu."
 }
 
 deploy_nmap() {
-    log_message "step" "Installation de Nmap (cartographie reseau)..."
+    log_message "step" "Installing Nmap (network mapping)..."
     ensure_command_absent nmap || return 0
 
     if command_exists apt-get; then
@@ -38,7 +38,7 @@ deploy_nmap() {
     elif command_exists dnf; then
         dnf install -y nmap
     else
-        log_message "error" "Gestionnaire de paquets non supporte"
+        log_message "error" "Unsupported package manager"
         wait_enter
         return 1
     fi
@@ -46,11 +46,11 @@ deploy_nmap() {
     mark_cli_installed "nmap"
 
     show_access_info "Nmap" \
-        "Commande:  nmap" \
+        "Command:   nmap" \
         "Scan:      nmap -sV -sC <target>" \
         "OT:        nmap --script modbus-discover <target>"
 
-    log_message "success" "Nmap installe avec succes"
+    log_message "success" "Nmap installed successfully"
 }
 
 deploy_openvas() {
@@ -58,7 +58,7 @@ deploy_openvas() {
     dir=$(tool_dir "openvas")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Greenbone/OpenVAS (scanner vulnerabilites)..."
+    log_message "step" "Deploying Greenbone/OpenVAS (vulnerability scanner)..."
 
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
@@ -197,43 +197,43 @@ EOF
 
     compose_in_dir "$dir" up -d
 
-    log_message "warning" "Premier demarrage: telechargement des feeds (30-60 min)"
+    log_message "warning" "First startup: feed download takes 30-60 minutes"
 
     show_access_info "Greenbone/OpenVAS" \
         "URL:       http://localhost:9392" \
         "User:      admin" \
-        "Password:  admin (changez-le!)"
+        "Password:  admin (change it!)"
 
     save_credentials "openvas" \
         "URL: http://localhost:9392" \
         "Username: admin" \
         "Default Password: admin"
 
-    log_message "success" "OpenVAS deploye avec succes"
+    log_message "success" "OpenVAS deployed successfully"
 }
 
 deploy_grfics() {
     echo ""
     ui_rule
-    echo -e "  ${BOLD}GRFICSv2${RESET} ${DIM}- Installation manuelle requise${RESET}"
+    echo -e "  ${BOLD}GRFICSv2${RESET} ${DIM}- Manual installation required${RESET}"
     ui_rule
     echo ""
-    echo -e "  Environnement de simulation ICS/SCADA (VMs)"
+    echo -e "  ICS/SCADA simulation environment (VMs)"
     echo ""
-    echo -e "  ${CYAN}Depot:${RESET}     https://github.com/Fortiphyd/GRFICSv2"
-    echo -e "  ${CYAN}Prerequis:${RESET} VirtualBox/VMware, 8GB+ RAM"
-    echo -e "  ${DIM}Composants: PLC (OpenPLC), HMI (ScadaBR)${RESET}"
+    echo -e "  ${CYAN}Repository:${RESET} https://github.com/Fortiphyd/GRFICSv2"
+    echo -e "  ${CYAN}Requirements:${RESET} VirtualBox/VMware, 8GB+ RAM"
+    echo -e "  ${DIM}Components: PLC (OpenPLC), HMI (ScadaBR)${RESET}"
 }
 
 deploy_grassmarlin() {
     echo ""
     ui_rule
-    echo -e "  ${BOLD}GRASSMARLIN${RESET} ${DIM}- Installation manuelle requise${RESET}"
+    echo -e "  ${BOLD}GRASSMARLIN${RESET} ${DIM}- Manual installation required${RESET}"
     ui_rule
     echo ""
-    echo -e "  Cartographie passive ICS/SCADA (NSA, Java)"
+    echo -e "  Passive ICS/SCADA network mapping (NSA, Java)"
     echo ""
-    echo -e "  ${CYAN}Depot:${RESET}     https://github.com/nsacyber/GRASSMARLIN"
-    echo -e "  ${CYAN}Prerequis:${RESET} Java 8+"
-    echo -e "  ${DIM}Lancer: java -jar grassmarlin.jar${RESET}"
+    echo -e "  ${CYAN}Repository:${RESET} https://github.com/nsacyber/GRASSMARLIN"
+    echo -e "  ${CYAN}Requirements:${RESET} Java 8+"
+    echo -e "  ${DIM}Launch: java -jar grassmarlin.jar${RESET}"
 }

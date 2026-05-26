@@ -1,5 +1,5 @@
-# lib/deploy_soc.sh — Déploiement des outils SOC / Detection & Response
-# Sourcé par medusa.sh — ne pas exécuter directement
+# lib/deploy_soc.sh — Deployment of SOC / Detection & Response tools
+# Sourced by medusa.sh — do not execute directly
 # shellcheck shell=bash
 [[ -n "${_DEPLOY_SOC_SH_LOADED:-}" ]] && return 0
 _DEPLOY_SOC_SH_LOADED=1
@@ -8,24 +8,24 @@ deploy_wazuh() {
     local dir
     dir=$(tool_dir "wazuh")
     if is_tool_installed "wazuh"; then
-        log_message "warning" "Wazuh est deja installe dans ${dir}"
-        confirm "Reinstaller ?" || return 0
+        log_message "warning" "Wazuh is already installed in ${dir}"
+        confirm "Reinstall?" || return 0
         docker_remove "wazuh"
     fi
 
-    log_message "step" "Deploiement de Wazuh (SIEM/XDR)..."
-    log_message "info" "Clonage du depot officiel wazuh-docker..."
+    log_message "step" "Deploying Wazuh (SIEM/XDR)..."
+    log_message "info" "Cloning official wazuh-docker repository..."
     git clone --depth 1 https://github.com/wazuh/wazuh-docker.git "$dir"
 
     local run_dir="${dir}"
     [[ -d "${dir}/single-node" ]] && run_dir="${dir}/single-node"
 
-    log_message "info" "Generation des certificats..."
+    log_message "info" "Generating certificates..."
     if [[ -f "${dir}/single-node/generate-indexer-certs.yml" ]]; then
         compose_in_dir "${dir}/single-node" -f generate-indexer-certs.yml run --rm generator
     fi
 
-    log_message "info" "Demarrage des conteneurs (single-node)..."
+    log_message "info" "Starting containers (single-node)..."
     compose_in_dir "${run_dir}" up -d
 
     show_access_info "Wazuh" \
@@ -41,7 +41,7 @@ deploy_wazuh() {
         "Password: SecretPassword" \
         "API: https://localhost:55000"
 
-    log_message "success" "Wazuh deploye avec succes"
+    log_message "success" "Wazuh deployed successfully"
 }
 
 deploy_suricata() {
@@ -49,14 +49,14 @@ deploy_suricata() {
     dir=$(tool_dir "suricata")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Suricata (IDS/IPS)..."
+    log_message "step" "Deploying Suricata (IDS/IPS)..."
 
     local iface
     iface=$(ip route 2>/dev/null | grep default | awk '{print $5}' | head -1)
     iface="${iface:-eth0}"
-    # Sanitize : caractères YAML-safe uniquement
+    # Sanitize: YAML-safe characters only
     iface=$(echo "$iface" | tr -cd 'a-zA-Z0-9_.-')
-    log_message "info" "Interface reseau detectee: ${iface}"
+    log_message "info" "Detected network interface: ${iface}"
 
     cat > "${dir}/docker-compose.yml" << EOF
 services:
@@ -84,7 +84,7 @@ EOF
         "Logs:    ${dir}/logs/" \
         "Rules:   ${dir}/rules/"
 
-    log_message "success" "Suricata deploye avec succes"
+    log_message "success" "Suricata deployed successfully"
 }
 
 deploy_zeek() {
@@ -92,7 +92,7 @@ deploy_zeek() {
     dir=$(tool_dir "zeek")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Zeek (analyse trafic reseau)..."
+    log_message "step" "Deploying Zeek (network traffic analysis)..."
 
     local iface
     iface=$(ip route 2>/dev/null | grep default | awk '{print $5}' | head -1)
@@ -123,7 +123,7 @@ EOF
         "Mode:    host (interface ${iface})" \
         "Logs:    ${dir}/logs/"
 
-    log_message "success" "Zeek deploye avec succes"
+    log_message "success" "Zeek deployed successfully"
 }
 
 deploy_opencti() {
@@ -131,7 +131,7 @@ deploy_opencti() {
     dir=$(tool_dir "opencti")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement d'OpenCTI (Cyber Threat Intelligence)..."
+    log_message "step" "Deploying OpenCTI (Cyber Threat Intelligence)..."
 
     local admin_token admin_password rabbitmq_password minio_secret connector_export_id connector_import_id
     admin_token=$(gen_uuid)
@@ -300,41 +300,41 @@ EOF
         "Password: ${admin_password}" \
         "Token: ${admin_token}"
 
-    log_message "success" "OpenCTI deploye avec succes"
+    log_message "success" "OpenCTI deployed successfully"
 }
 
 deploy_misp() {
     local dir
     dir=$(tool_dir "misp")
 
-    log_message "step" "Deploiement de MISP (Threat Intelligence Sharing)..."
-    log_message "info" "Clonage du depot officiel misp-docker..."
+    log_message "step" "Deploying MISP (Threat Intelligence Sharing)..."
+    log_message "info" "Cloning official misp-docker repository..."
     git clone --depth 1 https://github.com/MISP/misp-docker.git "$dir"
 
     [[ -f "${dir}/template.env" ]] && cp "${dir}/template.env" "${dir}/.env"
 
-    log_message "info" "Demarrage des conteneurs MISP..."
+    log_message "info" "Starting MISP containers..."
     $COMPOSE_CMD up -d
 
     show_access_info "MISP" \
         "URL:       https://localhost:443" \
         "Email:     admin@admin.test" \
         "Password:  admin" \
-        "!! Changez le mot de passe immediatement !!"
+        "!! Change the password immediately !!"
 
     save_credentials "misp" \
         "URL: https://localhost:443" \
         "Email: admin@admin.test" \
         "Default Password: admin"
 
-    log_message "success" "MISP deploye avec succes"
+    log_message "success" "MISP deployed successfully"
 }
 
 deploy_dfir_iris() {
     local dir
     dir=$(tool_dir "dfir-iris")
 
-    log_message "step" "Deploiement de DFIR-IRIS (Investigation forensique)..."
+    log_message "step" "Deploying DFIR-IRIS (Forensic investigation)..."
     git clone --depth 1 https://github.com/dfir-iris/iris-web.git "$dir"
 
     [[ -f "${dir}/.env.model" ]] && cp "${dir}/.env.model" "${dir}/.env"
@@ -344,10 +344,10 @@ deploy_dfir_iris() {
     show_access_info "DFIR-IRIS" \
         "URL:       https://localhost:4433" \
         "User:      administrator" \
-        "Password:  (voir logs du premier demarrage)" \
+        "Password:  (see logs on first startup)" \
         "Logs:      cd ${dir} && ${COMPOSE_CMD} logs app | grep password"
 
-    log_message "success" "DFIR-IRIS deploye avec succes"
+    log_message "success" "DFIR-IRIS deployed successfully"
 }
 
 deploy_cortex() {
@@ -355,7 +355,7 @@ deploy_cortex() {
     dir=$(tool_dir "cortex")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Cortex (Enrichissement & Response)..."
+    log_message "step" "Deploying Cortex (Observable Enrichment & Response)..."
 
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
@@ -396,9 +396,9 @@ EOF
 
     show_access_info "Cortex" \
         "URL:       http://localhost:9001" \
-        "Setup:     Creez le compte admin au premier acces"
+        "Setup:     Create the admin account on first access"
 
-    log_message "success" "Cortex deploye avec succes"
+    log_message "success" "Cortex deployed successfully"
 }
 
 deploy_velociraptor() {
@@ -406,7 +406,7 @@ deploy_velociraptor() {
     dir=$(tool_dir "velociraptor")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Velociraptor (Forensique endpoint)..."
+    log_message "step" "Deploying Velociraptor (Endpoint Forensics)..."
 
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
@@ -430,23 +430,23 @@ EOF
         "GUI:       port 8889" \
         "Frontend:  port 8000 (agents)"
 
-    log_message "success" "Velociraptor deploye avec succes"
+    log_message "success" "Velociraptor deployed successfully"
 }
 
 deploy_shuffle() {
     local dir
     dir=$(tool_dir "shuffle")
 
-    log_message "step" "Deploiement de Shuffle (SOAR)..."
+    log_message "step" "Deploying Shuffle (SOAR)..."
     git clone --depth 1 https://github.com/Shuffle/Shuffle.git "$dir"
 
     compose_in_dir "$dir" up -d
 
     show_access_info "Shuffle" \
         "URL:       http://localhost:3443" \
-        "Setup:     Creez le compte admin au premier acces"
+        "Setup:     Create the admin account on first access"
 
-    log_message "success" "Shuffle deploye avec succes"
+    log_message "success" "Shuffle deployed successfully"
 }
 
 deploy_grr() {
@@ -454,9 +454,9 @@ deploy_grr() {
     dir=$(tool_dir "grr")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de GRR Rapid Response..."
+    log_message "step" "Deploying GRR Rapid Response..."
 
-    # Port 8001 pour le GUI (evite conflit avec OpenCTI sur 8080)
+    # Port 8001 for GUI (avoids conflict with OpenCTI on 8080)
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
   grr-server:
@@ -477,7 +477,7 @@ EOF
         "URL:       http://localhost:8001" \
         "Admin:     http://localhost:8010"
 
-    log_message "success" "GRR deploye avec succes"
+    log_message "success" "GRR deployed successfully"
 }
 
 deploy_arkime() {
@@ -485,7 +485,7 @@ deploy_arkime() {
     dir=$(tool_dir "arkime")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement d'Arkime (capture paquets reseau)..."
+    log_message "step" "Deploying Arkime (network packet capture)..."
 
     local iface
     iface=$(ip route 2>/dev/null | grep default | awk '{print $5}' | head -1)
@@ -538,11 +538,11 @@ EOF
         "Interface: ${iface}" \
         "PCAPs:     ${dir}/pcap/"
 
-    log_message "success" "Arkime deploye avec succes"
+    log_message "success" "Arkime deployed successfully"
 }
 
 deploy_yara() {
-    log_message "step" "Installation de Yara (regles detection malwares)..."
+    log_message "step" "Installing Yara (malware detection rules)..."
     ensure_command_absent yara || return 0
 
     if command_exists apt-get; then
@@ -552,7 +552,7 @@ deploy_yara() {
     elif command_exists dnf; then
         dnf install -y yara
     else
-        log_message "error" "Gestionnaire de paquets non supporte"
+        log_message "error" "Unsupported package manager"
         wait_enter
         return 1
     fi
@@ -561,19 +561,19 @@ deploy_yara() {
     local dir
     dir=$(tool_dir "yara")
 
-    log_message "info" "Telechargement des regles community..."
+    log_message "info" "Downloading community rules..."
     git clone --depth 1 https://github.com/Yara-Rules/rules.git "${dir}/community-rules" 2>/dev/null || true
 
     show_access_info "Yara" \
-        "Commande:  yara" \
-        "Regles:    ${dir}/community-rules/" \
-        "Usage:     yara <rule.yar> <fichier>"
+        "Command:   yara" \
+        "Rules:     ${dir}/community-rules/" \
+        "Usage:     yara <rule.yar> <file>"
 
-    log_message "success" "Yara installe avec succes"
+    log_message "success" "Yara installed successfully"
 }
 
 deploy_sigma() {
-    log_message "step" "Installation de Sigma (regles de detection generiques)..."
+    log_message "step" "Installing Sigma (generic detection rules)..."
     ensure_command_absent sigma || return 0
     pip_install sigma-cli pySigma || { wait_enter; return 1; }
     mark_cli_installed "sigma"
@@ -583,25 +583,25 @@ deploy_sigma() {
     git clone --depth 1 https://github.com/SigmaHQ/sigma.git "${dir}/sigma-rules" 2>/dev/null || true
 
     show_access_info "Sigma" \
-        "Commande:  sigma" \
-        "Regles:    ${dir}/sigma-rules/" \
+        "Command:   sigma" \
+        "Rules:     ${dir}/sigma-rules/" \
         "Convert:   sigma convert -t <backend> -p <pipeline> <rule.yml>"
 
-    log_message "success" "Sigma installe avec succes"
+    log_message "success" "Sigma installed successfully"
 }
 
 deploy_security_onion() {
     echo ""
     ui_rule
-    echo -e "  ${BOLD}Security Onion${RESET} ${DIM}- Installation manuelle requise${RESET}"
+    echo -e "  ${BOLD}Security Onion${RESET} ${DIM}- Manual installation required${RESET}"
     ui_rule
     echo ""
-    echo -e "  Security Onion est une distribution complete (ISO)"
-    echo -e "  et ne se deploie pas via Docker Compose."
+    echo -e "  Security Onion is a full distribution (ISO)"
+    echo -e "  and cannot be deployed via Docker Compose."
     echo ""
     echo -e "  ${CYAN}Download:${RESET}  https://github.com/Security-Onion-Solutions/securityonion"
     echo -e "  ${CYAN}Docs:${RESET}      https://docs.securityonion.net/"
     echo ""
-    echo -e "  ${DIM}Deploiement: ISO dediee, VM, ou OVA${RESET}"
-    echo -e "  ${DIM}Prerequis: 16GB RAM, 4 CPU, 200GB disque${RESET}"
+    echo -e "  ${DIM}Deployment: dedicated ISO, VM, or OVA${RESET}"
+    echo -e "  ${DIM}Requirements: 16GB RAM, 4 CPU, 200GB disk${RESET}"
 }

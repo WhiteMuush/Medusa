@@ -1,5 +1,5 @@
-# lib/deploy_integration.sh — Déploiement des outils Integration (IAM, Cloud, CI/CD)
-# Sourcé par medusa.sh — ne pas exécuter directement
+# lib/deploy_integration.sh — Deployment of Integration tools (IAM, Cloud, CI/CD)
+# Sourced by medusa.sh — do not execute directly
 # shellcheck shell=bash
 [[ -n "${_DEPLOY_INTEGRATION_SH_LOADED:-}" ]] && return 0
 _DEPLOY_INTEGRATION_SH_LOADED=1
@@ -9,7 +9,7 @@ deploy_keycloak() {
     dir=$(tool_dir "keycloak")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Keycloak (IAM)..."
+    log_message "step" "Deploying Keycloak (IAM)..."
 
     local admin_password
     admin_password=$(gen_password 16)
@@ -62,7 +62,7 @@ EOF
         "Username: admin" \
         "Password: ${admin_password}"
 
-    log_message "success" "Keycloak deploye avec succes"
+    log_message "success" "Keycloak deployed successfully"
 }
 
 deploy_vault() {
@@ -70,7 +70,7 @@ deploy_vault() {
     dir=$(tool_dir "vault")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de HashiCorp Vault (secrets manager)..."
+    log_message "step" "Deploying HashiCorp Vault (secrets manager)..."
 
     local root_token
     root_token="medusa-$(gen_password 16)"
@@ -96,56 +96,56 @@ EOF
     mkdir -p "${dir}/data" "${dir}/config"
     compose_in_dir "$dir" up -d
 
-    log_message "warning" "Mode DEV : donnees en memoire uniquement — a ne pas utiliser en production"
+    log_message "warning" "DEV mode: data is in-memory only — do not use in production"
 
     show_access_info "Vault" \
         "URL:       http://localhost:8200" \
         "Token:     ${root_token}" \
-        "Mode:      DEV (donnees non persistees)" \
+        "Mode:      DEV (data not persisted)" \
         "CLI:       export VAULT_ADDR=http://localhost:8200"
 
     save_credentials "vault" \
         "URL: http://localhost:8200" \
         "Root Token: ${root_token}" \
-        "WARNING: Dev mode - donnees perdues au restart"
+        "WARNING: Dev mode - data lost on restart"
 
-    log_message "success" "Vault deploye avec succes"
+    log_message "success" "Vault deployed successfully"
 }
 
 deploy_trivy() {
-    log_message "step" "Installation de Trivy (scanner vulnerabilites)..."
+    log_message "step" "Installing Trivy (vulnerability scanner)..."
     ensure_command_absent trivy || return 0
 
     local _trivy_installer
     _trivy_installer=$(mktemp)
     curl -fsSL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-        -o "$_trivy_installer" || { log_message "error" "Telechargement du script Trivy echoue"; rm -f "$_trivy_installer"; wait_enter; return 1; }
-    sh "$_trivy_installer" -b /usr/local/bin || { log_message "error" "Installation de Trivy echouee"; rm -f "$_trivy_installer"; wait_enter; return 1; }
+        -o "$_trivy_installer" || { log_message "error" "Failed to download Trivy installer"; rm -f "$_trivy_installer"; wait_enter; return 1; }
+    sh "$_trivy_installer" -b /usr/local/bin || { log_message "error" "Trivy installation failed"; rm -f "$_trivy_installer"; wait_enter; return 1; }
     rm -f "$_trivy_installer"
 
     mark_cli_installed "trivy"
 
     show_access_info "Trivy" \
-        "Commande:  trivy" \
+        "Command:   trivy" \
         "Image:     trivy image <image:tag>" \
         "Filesystem: trivy fs <path>" \
         "IaC:       trivy config <path>"
 
-    log_message "success" "Trivy installe avec succes"
+    log_message "success" "Trivy installed successfully"
 }
 
 deploy_semgrep() {
-    log_message "step" "Installation de Semgrep (SAST)..."
+    log_message "step" "Installing Semgrep (SAST)..."
     ensure_command_absent semgrep || return 0
     pip_install semgrep || { wait_enter; return 1; }
     mark_cli_installed "semgrep"
 
     show_access_info "Semgrep" \
-        "Commande:  semgrep" \
+        "Command:   semgrep" \
         "Scan:      semgrep --config auto <path>" \
         "OWASP:     semgrep --config p/owasp-top-ten <path>"
 
-    log_message "success" "Semgrep installe avec succes"
+    log_message "success" "Semgrep installed successfully"
 }
 
 deploy_owasp_zap() {
@@ -153,7 +153,7 @@ deploy_owasp_zap() {
     dir=$(tool_dir "owasp-zap")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement d'OWASP ZAP (DAST)..."
+    log_message "step" "Deploying OWASP ZAP (DAST)..."
 
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
@@ -175,11 +175,11 @@ EOF
         "Baseline:  docker exec medusa-owasp-zap zap-baseline.py -t <url>" \
         "Full:      docker exec medusa-owasp-zap zap-full-scan.py -t <url>"
 
-    log_message "success" "OWASP ZAP deploye avec succes"
+    log_message "success" "OWASP ZAP deployed successfully"
 }
 
 deploy_gitleaks() {
-    log_message "step" "Installation de Gitleaks (detection secrets Git)..."
+    log_message "step" "Installing Gitleaks (Git secret detection)..."
     ensure_command_absent gitleaks || return 0
 
     local arch os latest_url
@@ -199,7 +199,7 @@ deploy_gitleaks() {
     elif command_exists go; then
         go install github.com/zricethezav/gitleaks/v8@latest
     else
-        log_message "error" "Impossible d'installer Gitleaks"
+        log_message "error" "Cannot install Gitleaks"
         wait_enter
         return 1
     fi
@@ -207,54 +207,54 @@ deploy_gitleaks() {
     mark_cli_installed "gitleaks"
 
     show_access_info "Gitleaks" \
-        "Commande:  gitleaks" \
+        "Command:   gitleaks" \
         "Detect:    gitleaks detect -s <path>" \
         "Protect:   gitleaks protect --staged"
 
-    log_message "success" "Gitleaks installe avec succes"
+    log_message "success" "Gitleaks installed successfully"
 }
 
 deploy_checkov() {
-    log_message "step" "Installation de Checkov (analyse IaC)..."
+    log_message "step" "Installing Checkov (IaC analysis)..."
     ensure_command_absent checkov || return 0
     pip_install checkov || { wait_enter; return 1; }
     mark_cli_installed "checkov"
 
     show_access_info "Checkov" \
-        "Commande:  checkov" \
+        "Command:   checkov" \
         "Terraform: checkov -d <tf_dir>" \
         "Docker:    checkov -f <Dockerfile>"
 
-    log_message "success" "Checkov installe avec succes"
+    log_message "success" "Checkov installed successfully"
 }
 
 deploy_prowler() {
-    log_message "step" "Installation de Prowler (audit cloud)..."
+    log_message "step" "Installing Prowler (cloud audit)..."
     ensure_command_absent prowler || return 0
     pip_install prowler || { wait_enter; return 1; }
     mark_cli_installed "prowler"
 
     show_access_info "Prowler" \
-        "Commande:  prowler" \
+        "Command:   prowler" \
         "AWS:       prowler aws" \
         "Azure:     prowler azure" \
         "GCP:       prowler gcp"
 
-    log_message "success" "Prowler installe avec succes"
+    log_message "success" "Prowler installed successfully"
 }
 
 deploy_scoutsuite() {
-    log_message "step" "Installation de ScoutSuite (audit multi-cloud)..."
+    log_message "step" "Installing ScoutSuite (multi-cloud audit)..."
     ensure_command_absent scout || return 0
     pip_install scoutsuite || { wait_enter; return 1; }
     mark_cli_installed "scoutsuite"
 
     show_access_info "ScoutSuite" \
-        "Commande:  scout" \
+        "Command:   scout" \
         "AWS:       scout aws" \
         "Azure:     scout azure --cli"
 
-    log_message "success" "ScoutSuite installe avec succes"
+    log_message "success" "ScoutSuite installed successfully"
 }
 
 deploy_falco() {
@@ -262,7 +262,7 @@ deploy_falco() {
     dir=$(tool_dir "falco")
     mkdir -p "$dir"
 
-    log_message "step" "Deploiement de Falco (detection runtime cloud-native)..."
+    log_message "step" "Deploying Falco (cloud-native runtime threat detection)..."
 
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
@@ -287,30 +287,33 @@ EOF
     compose_in_dir "$dir" up -d
 
     show_access_info "Falco" \
-        "Mode:      Daemon (pas d'interface web)" \
+        "Mode:      Daemon (no web interface)" \
         "Logs:      ${COMPOSE_CMD} logs -f falco" \
         "Rules:     ${dir}/rules/"
 
-    log_message "success" "Falco deploye avec succes"
+    log_message "success" "Falco deployed successfully"
 }
 
 deploy_teleport() {
-    log_message "step" "Installation de Teleport (PAM)..."
+    log_message "step" "Installing Teleport (PAM)..."
     ensure_command_absent teleport || return 0
 
     local _teleport_installer
     _teleport_installer=$(mktemp)
     curl -fsSL https://goteleport.com/static/install.sh \
-        -o "$_teleport_installer" || { log_message "error" "Telechargement du script Teleport echoue"; rm -f "$_teleport_installer"; wait_enter; return 1; }
-    bash "$_teleport_installer" || { log_message "error" "Installation de Teleport echouee"; rm -f "$_teleport_installer"; wait_enter; return 1; }
+        -o "$_teleport_installer" || { log_message "error" "Failed to download Teleport installer"; rm -f "$_teleport_installer"; wait_enter; return 1; }
+    bash "$_teleport_installer" || { log_message "error" "Teleport installation failed"; rm -f "$_teleport_installer"; wait_enter; return 1; }
     rm -f "$_teleport_installer"
 
     mark_cli_installed "teleport"
 
+    local dir
+    dir=$(tool_dir "teleport")
+
     show_access_info "Teleport" \
-        "Commande:  teleport" \
+        "Command:   teleport" \
         "Config:    teleport configure -o ${dir}/teleport.yaml" \
         "Ports:     3023 (SSH), 3080 (web)"
 
-    log_message "success" "Teleport installe avec succes"
+    log_message "success" "Teleport installed successfully"
 }

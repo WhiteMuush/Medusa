@@ -1,6 +1,6 @@
-# lib/run_cli.sh — Sous-menus de lancement des outils CLI
+# lib/run_cli.sh — CLI tool launch sub-menus
 # shellcheck shell=bash
-# Sourcé par medusa.sh — ne pas exécuter directement
+# Sourced by medusa.sh — do not execute directly
 # shellcheck shell=bash
 [[ -n "${_RUN_CLI_SH_LOADED:-}" ]] && return 0
 _RUN_CLI_SH_LOADED=1
@@ -16,21 +16,21 @@ dispatch_run() {
     if declare -f "$func" &>/dev/null; then
         $func
     else
-        log_message "error" "Pas de sous-menu defini pour ${tool}"
+        log_message "error" "No sub-menu defined for ${tool}"
         wait_enter
     fi
 }
 
 # ============================================================================
-# HELPER — saisie de paramètre optionnel
+# HELPERS
 # ============================================================================
 
 # shellcheck disable=SC2120
 _check_root() {
     if [[ $EUID -ne 0 ]]; then
-        log_message "warning" "Cette operation necessite les droits root (sudo)"
+        log_message "warning" "This operation requires root privileges (sudo)"
         echo ""
-        read -rp "  ${YELLOW}[?]${RESET} Relancer avec sudo ? [o/N]: " _sudo_reply
+        read -rp "  ${YELLOW}[?]${RESET} Relaunch with sudo? [y/N]: " _sudo_reply
         if [[ "${_sudo_reply,,}" =~ ^[oy]$ ]]; then
             exec sudo "$0" "$@"
         fi
@@ -41,9 +41,9 @@ _check_root() {
 
 _check_docker_registry() {
     local registry="$1"
-    log_message "info" "Registry privee detectee : ${registry}"
+    log_message "info" "Private registry detected: ${registry}"
     echo ""
-    read -rp "  ${YELLOW}[?]${RESET} Authentification requise ? [o/N]: " _reg_reply
+    read -rp "  ${YELLOW}[?]${RESET} Authentication required? [y/N]: " _reg_reply
     if [[ "${_reg_reply,,}" =~ ^[oy]$ ]]; then
         local user pass
         user=$(_prompt "Username" "")
@@ -75,7 +75,7 @@ _run_menu() {
     echo -e "${BRIGHT_GREEN}╭─╯"
     echo -e "${BRIGHT_GREEN}│"
     echo -e "${BRIGHT_GREEN}╞─────────────╮"
-    echo -e "${BRIGHT_GREEN}│ ${RED}B${RESET}  Retour ${BRIGHT_GREEN}  │"
+    echo -e "${BRIGHT_GREEN}│ ${RED}B${RESET}  Back   ${BRIGHT_GREEN}  │"
     echo -e "${BRIGHT_GREEN}╞─────────────╯"
     echo -e "${BRIGHT_GREEN}│"
     echo -e "${BRIGHT_GREEN}◉"
@@ -89,14 +89,14 @@ _run_menu() {
 
 run_yara() {
     if ! command_exists yara; then
-        log_message "error" "yara n'est pas installe — utilisez l'option Installer"
+        log_message "error" "yara is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "YARA" \
-            "Scanner un fichier" \
-            "Scanner un repertoire" \
-            "Tester une regle"
+            "Scan a file" \
+            "Scan a directory" \
+            "Test a rule"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         local rules_dir rules_default
@@ -110,26 +110,26 @@ run_yara() {
         case "$_run_choice" in
             1)
                 local target rule
-                target=$(_prompt "Fichier cible" "/path/to/file")
-                rule=$(_prompt "Fichier de regles (.yar)" "${rules_default}")
+                target=$(_prompt "Target file" "/path/to/file")
+                rule=$(_prompt "Rules file (.yar)" "${rules_default}")
                 echo ""
                 yara "$rule" "$target"
                 ;;
             2)
                 local target rule
-                target=$(_prompt "Repertoire cible" "/path/to/dir")
-                rule=$(_prompt "Fichier de regles (.yar)" "${rules_default}")
+                target=$(_prompt "Target directory" "/path/to/dir")
+                rule=$(_prompt "Rules file (.yar)" "${rules_default}")
                 echo ""
                 yara -r "$rule" "$target"
                 ;;
             3)
                 local rule test_file
-                rule=$(_prompt "Fichier de regles (.yar)" "${rules_default}")
-                test_file=$(_prompt "Fichier de test" "/path/to/sample")
+                rule=$(_prompt "Rules file (.yar)" "${rules_default}")
+                test_file=$(_prompt "Test file" "/path/to/sample")
                 echo ""
                 yara -s "$rule" "$test_file"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -137,16 +137,16 @@ run_yara() {
 
 run_sigma() {
     if ! command_exists sigma; then
-        log_message "error" "sigma-cli n'est pas installe — utilisez l'option Installer"
+        log_message "error" "sigma-cli is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "SIGMA" \
-            "Convertir une regle (Elastic)" \
-            "Convertir une regle (Splunk)" \
-            "Convertir une regle (Wazuh)" \
-            "Valider une regle" \
-            "Lister les backends disponibles"
+            "Convert a rule (Elastic)" \
+            "Convert a rule (Splunk)" \
+            "Convert a rule (Wazuh)" \
+            "Validate a rule" \
+            "List available backends"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         local rules_dir rules_default
@@ -160,25 +160,25 @@ run_sigma() {
         case "$_run_choice" in
             1)
                 local rule
-                rule=$(_prompt "Fichier regle (.yml)" "${rules_default}")
+                rule=$(_prompt "Rule file (.yml)" "${rules_default}")
                 echo ""
                 sigma convert -t elasticsearch -p ecs-windows "$rule"
                 ;;
             2)
                 local rule
-                rule=$(_prompt "Fichier regle (.yml)" "${rules_default}")
+                rule=$(_prompt "Rule file (.yml)" "${rules_default}")
                 echo ""
                 sigma convert -t splunk "$rule"
                 ;;
             3)
                 local rule
-                rule=$(_prompt "Fichier regle (.yml)" "${rules_default}")
+                rule=$(_prompt "Rule file (.yml)" "${rules_default}")
                 echo ""
                 sigma convert -t wazuh "$rule"
                 ;;
             4)
                 local rule
-                rule=$(_prompt "Fichier regle (.yml)" "${rules_default}")
+                rule=$(_prompt "Rule file (.yml)" "${rules_default}")
                 echo ""
                 sigma check "$rule"
                 ;;
@@ -186,7 +186,7 @@ run_sigma() {
                 echo ""
                 sigma list-targets
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -196,14 +196,14 @@ run_sigma() {
 # GRC
 # ============================================================================
 
-# Détecte le premier profil correspondant à un mot-clé dans le datastream courant
-# Usage : _oscap_find_profile "cis"  →  stocke dans OSCAP_PROFILE
+# Finds the first profile matching a keyword in the current datastream
+# Usage: _oscap_find_profile "cis"  →  stores result in OSCAP_PROFILE
 _oscap_find_profile() {
     local keyword="$1"
     OSCAP_PROFILE=""
     if [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]]; then return 1; fi
 
-    # oscap info liste les profils sous la forme "Profile ID: ..."
+    # oscap info lists profiles as "Profile ID: ..."
     local match
     match=$(oscap info "$OSCAP_DS" 2>/dev/null \
         | grep -i "Profile ID:" \
@@ -213,18 +213,18 @@ _oscap_find_profile() {
 
     if [[ -n "$match" ]]; then
         OSCAP_PROFILE="$match"
-        log_message "info" "Profil selectionne : ${OSCAP_PROFILE}"
+        log_message "info" "Selected profile: ${OSCAP_PROFILE}"
     else
-        log_message "warning" "Aucun profil '${keyword}' trouve dans ce datastream"
-        log_message "info" "Profils disponibles :"
+        log_message "warning" "No '${keyword}' profile found in this datastream"
+        log_message "info" "Available profiles:"
         oscap info "$OSCAP_DS" 2>/dev/null | grep "Profile ID:" | sed 's/.*Profile ID:[[:space:]]*/  - /' || true
         echo ""
-        read -rp "  ${CYAN}ID du profil${RESET}: " OSCAP_PROFILE
+        read -rp "  ${CYAN}Profile ID${RESET}: " OSCAP_PROFILE
     fi
 }
 
-# Stocke le chemin dans OSCAP_DS (variable globale) pour éviter la subshell
-# Affiche les messages sur stderr — ne pas appeler via $(...)
+# Stores the path in OSCAP_DS (global variable) to avoid subshell issues
+# Prints messages to stderr — do not call via $(...)
 _oscap_detect_ds() {
     OSCAP_DS=""
     local ssg_dir="/usr/share/xml/scap/ssg/content"
@@ -250,25 +250,25 @@ _oscap_detect_ds() {
     fi
 
     if [[ -z "$OSCAP_DS" ]]; then
-        log_message "warning" "Aucun datastream SSG detecte automatiquement"
-        log_message "info" "Datastreams disponibles :"
+        log_message "warning" "No SSG datastream auto-detected"
+        log_message "info" "Available datastreams:"
         find /usr/share/xml /usr/share/openscap -name "*-ds.xml" 2>/dev/null | head -10 || true
         echo ""
-        read -rp "  ${CYAN}Chemin du datastream${RESET} [${DIM}/path/to/ds.xml${RESET}]: " OSCAP_DS
+        read -rp "  ${CYAN}Datastream path${RESET} [${DIM}/path/to/ds.xml${RESET}]: " OSCAP_DS
         OSCAP_DS="${OSCAP_DS:-}"
     else
-        log_message "info" "Datastream detecte : ${OSCAP_DS}"
+        log_message "info" "Detected datastream: ${OSCAP_DS}"
     fi
 }
 
 run_openscap() {
     while true; do
         _run_menu "OPENSCAP" \
-            "Scan conformite CIS" \
-            "Scan conformite STIG" \
-            "Scan personnalise" \
-            "Generer rapport HTML" \
-            "Lister les profils disponibles"
+            "CIS compliance scan" \
+            "STIG compliance scan" \
+            "Custom scan" \
+            "Generate HTML report" \
+            "List available profiles"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
@@ -276,7 +276,7 @@ run_openscap() {
             1)
                 _check_root || { wait_enter; continue; }
                 _oscap_detect_ds
-                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream introuvable"; wait_enter; continue; }
+                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream not found"; wait_enter; continue; }
                 _oscap_find_profile "cis"
                 [[ -z "$OSCAP_PROFILE" ]] && { wait_enter; continue; }
                 echo ""
@@ -286,7 +286,7 @@ run_openscap() {
             2)
                 _check_root || { wait_enter; continue; }
                 _oscap_detect_ds
-                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream introuvable"; wait_enter; continue; }
+                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream not found"; wait_enter; continue; }
                 _oscap_find_profile "stig"
                 [[ -z "$OSCAP_PROFILE" ]] && { wait_enter; continue; }
                 echo ""
@@ -296,31 +296,31 @@ run_openscap() {
             3)
                 _check_root || { wait_enter; continue; }
                 _oscap_detect_ds
-                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream introuvable"; wait_enter; continue; }
-                log_message "info" "Profils disponibles :"
+                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream not found"; wait_enter; continue; }
+                log_message "info" "Available profiles:"
                 oscap info "$OSCAP_DS" 2>/dev/null | grep "Profile ID:" | sed 's/.*Profile ID:[[:space:]]*/  - /' || true
                 echo ""
                 local profile
-                read -rp "  ${CYAN}ID du profil${RESET}: " profile
-                [[ -z "$profile" ]] && { log_message "error" "Profil requis"; wait_enter; continue; }
+                read -rp "  ${CYAN}Profile ID${RESET}: " profile
+                [[ -z "$profile" ]] && { log_message "error" "Profile required"; wait_enter; continue; }
                 echo ""
                 oscap xccdf eval --profile "$profile" --results /tmp/oscap-results.xml "$OSCAP_DS"
                 ;;
             4)
                 if [[ -f /tmp/oscap-results.xml ]]; then
                     oscap xccdf generate report /tmp/oscap-results.xml > /tmp/oscap-report.html
-                    log_message "success" "Rapport genere : /tmp/oscap-report.html"
+                    log_message "success" "Report generated: /tmp/oscap-report.html"
                 else
-                    log_message "error" "Aucun resultat trouve, lancez d'abord un scan"
+                    log_message "error" "No results found, run a scan first"
                 fi
                 ;;
             5)
                 _oscap_detect_ds
-                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream introuvable"; wait_enter; continue; }
+                [[ -z "$OSCAP_DS" || ! -f "$OSCAP_DS" ]] && { log_message "error" "Datastream not found"; wait_enter; continue; }
                 echo ""
                 oscap info "$OSCAP_DS"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -332,16 +332,16 @@ run_openscap() {
 
 run_trivy() {
     if ! command_exists trivy; then
-        log_message "error" "trivy n'est pas installe — utilisez l'option Installer"
+        log_message "error" "trivy is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "TRIVY" \
-            "Scanner une image Docker" \
-            "Scanner un repertoire (filesystem)" \
-            "Scanner une config IaC" \
-            "Scanner un depot Git" \
-            "Generer rapport JSON"
+            "Scan a Docker image" \
+            "Scan a directory (filesystem)" \
+            "Scan an IaC config" \
+            "Scan a Git repository" \
+            "Generate JSON report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
@@ -349,7 +349,7 @@ run_trivy() {
             1)
                 local image
                 image=$(_prompt "Image" "nginx:latest")
-                # Detecte registry privee (contient un . ou : avant le premier /)
+                # Detect private registry (contains a . or : before the first /)
                 if [[ "$image" =~ ^[^/]*\.[^/]*/ ]] || [[ "$image" =~ ^[^/]*:[0-9]+/ ]]; then
                     _check_docker_registry "${image%%/*}"
                 fi
@@ -358,31 +358,31 @@ run_trivy() {
                 ;;
             2)
                 local path
-                path=$(_prompt "Chemin" ".")
+                path=$(_prompt "Path" ".")
                 echo ""
                 trivy fs "$path"
                 ;;
             3)
                 local path
-                path=$(_prompt "Chemin IaC (Terraform, K8s...)" ".")
+                path=$(_prompt "IaC path (Terraform, K8s...)" ".")
                 echo ""
                 trivy config "$path"
                 ;;
             4)
                 local repo
-                repo=$(_prompt "URL du depot" "https://github.com/org/repo")
+                repo=$(_prompt "Repository URL" "https://github.com/org/repo")
                 echo ""
                 trivy repo "$repo"
                 ;;
             5)
                 local image output
                 image=$(_prompt "Image" "nginx:latest")
-                output=$(_prompt "Fichier de sortie" "/tmp/trivy-report.json")
+                output=$(_prompt "Output file" "/tmp/trivy-report.json")
                 echo ""
                 trivy image -f json -o "$output" "$image"
-                log_message "success" "Rapport sauvegarde : ${output}"
+                log_message "success" "Report saved: ${output}"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -390,54 +390,54 @@ run_trivy() {
 
 run_semgrep() {
     if ! command_exists semgrep; then
-        log_message "error" "semgrep n'est pas installe — utilisez l'option Installer"
+        log_message "error" "semgrep is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "SEMGREP" \
-            "Scan auto (regles recommandees)" \
-            "Scan OWASP Top 10" \
-            "Scan secrets" \
-            "Scan sur un langage specifique" \
-            "Generer rapport JSON"
+            "Auto scan (recommended rules)" \
+            "OWASP Top 10 scan" \
+            "Secrets scan" \
+            "Language-specific scan" \
+            "Generate JSON report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
         case "$_run_choice" in
             1)
                 local path
-                path=$(_prompt "Repertoire cible" ".")
+                path=$(_prompt "Target directory" ".")
                 echo ""
                 semgrep --config auto "$path"
                 ;;
             2)
                 local path
-                path=$(_prompt "Repertoire cible" ".")
+                path=$(_prompt "Target directory" ".")
                 echo ""
                 semgrep --config p/owasp-top-ten "$path"
                 ;;
             3)
                 local path
-                path=$(_prompt "Repertoire cible" ".")
+                path=$(_prompt "Target directory" ".")
                 echo ""
                 semgrep --config p/secrets "$path"
                 ;;
             4)
                 local path lang
-                path=$(_prompt "Repertoire cible" ".")
-                lang=$(_prompt "Langage (python, javascript, java...)" "python")
+                path=$(_prompt "Target directory" ".")
+                lang=$(_prompt "Language (python, javascript, java...)" "python")
                 echo ""
                 semgrep --config "p/${lang}" "$path"
                 ;;
             5)
                 local path output
-                path=$(_prompt "Repertoire cible" ".")
-                output=$(_prompt "Fichier de sortie" "/tmp/semgrep-report.json")
+                path=$(_prompt "Target directory" ".")
+                output=$(_prompt "Output file" "/tmp/semgrep-report.json")
                 echo ""
                 semgrep --config auto --json -o "$output" "$path"
-                log_message "success" "Rapport sauvegarde : ${output}"
+                log_message "success" "Report saved: ${output}"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -445,16 +445,16 @@ run_semgrep() {
 
 run_gitleaks() {
     if ! command_exists gitleaks; then
-        log_message "error" "gitleaks n'est pas installe — utilisez l'option Installer"
+        log_message "error" "gitleaks is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "GITLEAKS" \
-            "Scanner le depot courant" \
-            "Scanner un depot specifique" \
-            "Scanner les fichiers stagees (pre-commit)" \
-            "Scanner un depot distant (URL)" \
-            "Generer rapport JSON"
+            "Scan current repository" \
+            "Scan a specific repository" \
+            "Scan staged files (pre-commit)" \
+            "Scan a remote repository (URL)" \
+            "Generate JSON report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
@@ -465,7 +465,7 @@ run_gitleaks() {
                 ;;
             2)
                 local path
-                path=$(_prompt "Chemin du depot" "/path/to/repo")
+                path=$(_prompt "Repository path" "/path/to/repo")
                 echo ""
                 gitleaks detect -s "$path"
                 ;;
@@ -475,19 +475,19 @@ run_gitleaks() {
                 ;;
             4)
                 local url
-                url=$(_prompt "URL du depot" "https://github.com/org/repo")
+                url=$(_prompt "Repository URL" "https://github.com/org/repo")
                 echo ""
                 gitleaks detect --source "$url"
                 ;;
             5)
                 local path output
-                path=$(_prompt "Chemin du depot" ".")
-                output=$(_prompt "Fichier de sortie" "/tmp/gitleaks-report.json")
+                path=$(_prompt "Repository path" ".")
+                output=$(_prompt "Output file" "/tmp/gitleaks-report.json")
                 echo ""
                 gitleaks detect -s "$path" --report-path "$output" --report-format json
-                log_message "success" "Rapport sauvegarde : ${output}"
+                log_message "success" "Report saved: ${output}"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -495,53 +495,53 @@ run_gitleaks() {
 
 run_checkov() {
     if ! command_exists checkov; then
-        log_message "error" "checkov n'est pas installe — utilisez l'option Installer"
+        log_message "error" "checkov is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "CHECKOV" \
-            "Scanner Terraform" \
-            "Scanner Kubernetes (YAML)" \
-            "Scanner un Dockerfile" \
-            "Scanner CloudFormation" \
-            "Generer rapport JSON"
+            "Scan Terraform" \
+            "Scan Kubernetes (YAML)" \
+            "Scan a Dockerfile" \
+            "Scan CloudFormation" \
+            "Generate JSON report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
         case "$_run_choice" in
             1)
                 local path
-                path=$(_prompt "Repertoire Terraform" ".")
+                path=$(_prompt "Terraform directory" ".")
                 echo ""
                 checkov -d "$path" --framework terraform
                 ;;
             2)
                 local path
-                path=$(_prompt "Repertoire / fichier K8s" ".")
+                path=$(_prompt "K8s directory / file" ".")
                 echo ""
                 checkov -d "$path" --framework kubernetes
                 ;;
             3)
                 local file
-                file=$(_prompt "Chemin du Dockerfile" "./Dockerfile")
+                file=$(_prompt "Dockerfile path" "./Dockerfile")
                 echo ""
                 checkov -f "$file" --framework dockerfile
                 ;;
             4)
                 local path
-                path=$(_prompt "Repertoire CloudFormation" ".")
+                path=$(_prompt "CloudFormation directory" ".")
                 echo ""
                 checkov -d "$path" --framework cloudformation
                 ;;
             5)
                 local path output
-                path=$(_prompt "Repertoire cible" ".")
-                output=$(_prompt "Fichier de sortie" "/tmp/checkov-report.json")
+                path=$(_prompt "Target directory" ".")
+                output=$(_prompt "Output file" "/tmp/checkov-report.json")
                 echo ""
                 checkov -d "$path" -o json > "$output"
-                log_message "success" "Rapport sauvegarde : ${output}"
+                log_message "success" "Report saved: ${output}"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -550,13 +550,13 @@ run_checkov() {
 _prowler_check_aws() {
     if [[ -z "${AWS_ACCESS_KEY_ID:-}" || -z "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
         if ! command_exists aws || ! aws sts get-caller-identity &>/dev/null 2>&1; then
-            log_message "warning" "Credentials AWS non configures"
+            log_message "warning" "AWS credentials not configured"
             echo -e "${BRIGHT_GREEN}│"
-            echo -e "╞─> ${BRIGHT_MAGENTA}${BOLD}AUTHENTIFICATION AWS${RESET}"
+            echo -e "╞─> ${BRIGHT_MAGENTA}${BOLD}AWS AUTHENTICATION${RESET}"
             echo -e "${BRIGHT_GREEN}╰─╮"
-            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}1${RESET}  Variables d'environnement (saisie maintenant)"
-            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}2${RESET}  Profil AWS CLI (~/.aws/credentials)"
-            echo -e "${BRIGHT_GREEN}  ╞─> ${RED}B${RESET}  Annuler"
+            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}1${RESET}  Environment variables (enter now)"
+            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}2${RESET}  AWS CLI profile (~/.aws/credentials)"
+            echo -e "${BRIGHT_GREEN}  ╞─> ${RED}B${RESET}  Cancel"
             echo -e "${BRIGHT_GREEN}╭─╯"
             echo -e "${BRIGHT_GREEN}◉"
             echo ""
@@ -570,7 +570,7 @@ _prowler_check_aws() {
                     ;;
                 2)
                     local profile
-                    profile=$(_prompt "Profil AWS CLI" "default")
+                    profile=$(_prompt "AWS CLI profile" "default")
                     export AWS_PROFILE="$profile"
                     ;;
                 *) return 1 ;;
@@ -582,13 +582,13 @@ _prowler_check_aws() {
 
 _prowler_check_azure() {
     if [[ -z "${AZURE_CLIENT_ID:-}" ]]; then
-        log_message "warning" "Credentials Azure non configures"
+        log_message "warning" "Azure credentials not configured"
         echo -e "${BRIGHT_GREEN}│"
-        echo -e "╞─> ${BRIGHT_MAGENTA}${BOLD}AUTHENTIFICATION AZURE${RESET}"
+        echo -e "╞─> ${BRIGHT_MAGENTA}${BOLD}AZURE AUTHENTICATION${RESET}"
         echo -e "${BRIGHT_GREEN}╰─╮"
-        echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}1${RESET}  Service Principal (variables d'environnement)"
-        echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}2${RESET}  Azure CLI (az login deja effectue)"
-        echo -e "${BRIGHT_GREEN}  ╞─> ${RED}B${RESET}  Annuler"
+        echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}1${RESET}  Service Principal (environment variables)"
+        echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}2${RESET}  Azure CLI (az login already done)"
+        echo -e "${BRIGHT_GREEN}  ╞─> ${RED}B${RESET}  Cancel"
         echo -e "${BRIGHT_GREEN}╭─╯"
         echo -e "${BRIGHT_GREEN}◉"
         echo ""
@@ -602,7 +602,7 @@ _prowler_check_azure() {
                 export AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID
                 ;;
             2)
-                log_message "info" "Utilisation d'Azure CLI (az login)"
+                log_message "info" "Using Azure CLI (az login)"
                 return 0
                 ;;
             *) return 1 ;;
@@ -614,24 +614,24 @@ _prowler_check_azure() {
 _prowler_check_gcp() {
     if [[ -z "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
         if ! command_exists gcloud || ! gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>/dev/null | grep -q .; then
-            log_message "warning" "Credentials GCP non configures"
+            log_message "warning" "GCP credentials not configured"
             echo -e "${BRIGHT_GREEN}│"
-            echo -e "╞─> ${BRIGHT_MAGENTA}${BOLD}AUTHENTIFICATION GCP${RESET}"
+            echo -e "╞─> ${BRIGHT_MAGENTA}${BOLD}GCP AUTHENTICATION${RESET}"
             echo -e "${BRIGHT_GREEN}╰─╮"
-            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}1${RESET}  Fichier de cle de compte de service (JSON)"
-            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}2${RESET}  gcloud CLI (gcloud auth deja effectue)"
-            echo -e "${BRIGHT_GREEN}  ╞─> ${RED}B${RESET}  Annuler"
+            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}1${RESET}  Service account key file (JSON)"
+            echo -e "${BRIGHT_GREEN}  ╞─> ${CYAN}2${RESET}  gcloud CLI (gcloud auth already done)"
+            echo -e "${BRIGHT_GREEN}  ╞─> ${RED}B${RESET}  Cancel"
             echo -e "${BRIGHT_GREEN}╭─╯"
             echo -e "${BRIGHT_GREEN}◉"
             echo ""
             read -rp "  > " _cred_choice
             case "${_cred_choice,,}" in
                 1)
-                    GOOGLE_APPLICATION_CREDENTIALS=$(_prompt "Chemin vers le fichier JSON" "/path/to/key.json")
+                    GOOGLE_APPLICATION_CREDENTIALS=$(_prompt "Path to JSON key file" "/path/to/key.json")
                     export GOOGLE_APPLICATION_CREDENTIALS
                     ;;
                 2)
-                    log_message "info" "Utilisation de gcloud CLI"
+                    log_message "info" "Using gcloud CLI"
                     return 0
                     ;;
                 *) return 1 ;;
@@ -643,17 +643,17 @@ _prowler_check_gcp() {
 
 run_prowler() {
     if ! command_exists prowler; then
-        log_message "error" "prowler n'est pas installe — utilisez l'option Installer"
+        log_message "error" "prowler is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "PROWLER" \
-            "Audit AWS" \
-            "Audit Azure" \
-            "Audit GCP" \
-            "Lister les checks disponibles" \
-            "Scan cible sur un service AWS" \
-            "Generer rapport HTML"
+            "AWS audit" \
+            "Azure audit" \
+            "GCP audit" \
+            "List available checks" \
+            "Targeted scan on an AWS service" \
+            "Generate HTML report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
@@ -693,7 +693,7 @@ run_prowler() {
             6)
                 local provider output
                 provider=$(_prompt "Provider (aws, azure, gcp)" "aws")
-                output=$(_prompt "Dossier de sortie" "./output")
+                output=$(_prompt "Output directory" "./output")
                 case "$provider" in
                     aws)   _prowler_check_aws   || { wait_enter; continue; } ;;
                     azure) _prowler_check_azure || { wait_enter; continue; } ;;
@@ -701,9 +701,9 @@ run_prowler() {
                 esac
                 echo ""
                 prowler "$provider" -M html -o "$output"
-                log_message "success" "Rapport sauvegarde dans : ${output}"
+                log_message "success" "Report saved to: ${output}"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -711,16 +711,16 @@ run_prowler() {
 
 run_scoutsuite() {
     if ! command_exists scout; then
-        log_message "error" "scoutsuite n'est pas installe — utilisez l'option Installer"
+        log_message "error" "scoutsuite is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "SCOUTSUITE" \
-            "Audit AWS" \
-            "Audit Azure (CLI auth)" \
-            "Audit GCP" \
-            "Audit Azure (Service Principal)" \
-            "Ouvrir le dernier rapport"
+            "AWS audit" \
+            "Azure audit (CLI auth)" \
+            "GCP audit" \
+            "Azure audit (Service Principal)" \
+            "Open last report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
@@ -731,7 +731,7 @@ run_scoutsuite() {
                 scout aws
                 ;;
             2)
-                log_message "info" "Assurez-vous d'avoir execute : az login"
+                log_message "info" "Make sure you have run: az login"
                 echo ""
                 scout azure --cli
                 ;;
@@ -754,13 +754,13 @@ run_scoutsuite() {
                 local report
                 report=$(find . -name "scoutsuite-report*.html" 2>/dev/null | head -1)
                 if [[ -n "$report" ]]; then
-                    log_message "info" "Rapport : ${report}"
-                    xdg-open "$report" 2>/dev/null || log_message "info" "Ouvrez manuellement : ${report}"
+                    log_message "info" "Report: ${report}"
+                    xdg-open "$report" 2>/dev/null || log_message "info" "Open manually: ${report}"
                 else
-                    log_message "warning" "Aucun rapport trouve dans le repertoire courant"
+                    log_message "warning" "No report found in the current directory"
                 fi
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -768,16 +768,16 @@ run_scoutsuite() {
 
 run_teleport() {
     if ! command_exists teleport; then
-        log_message "error" "teleport n'est pas installe — utilisez l'option Installer"
+        log_message "error" "teleport is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "TELEPORT" \
-            "Generer la configuration" \
-            "Demarrer le serveur" \
-            "Afficher le statut" \
-            "Creer un token d'invitation" \
-            "Lister les noeuds connectes"
+            "Generate configuration" \
+            "Start server" \
+            "Show status" \
+            "Create invite token" \
+            "List connected nodes"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         local dir
@@ -786,20 +786,20 @@ run_teleport() {
         case "$_run_choice" in
             1)
                 local domain
-                domain=$(_prompt "Domaine public" "localhost")
+                domain=$(_prompt "Public domain" "localhost")
                 echo ""
                 teleport configure -o "${dir}/teleport.yaml" \
                     --cluster-name="$domain" \
                     --public-addr="${domain}:3080" 2>/dev/null \
                     || teleport configure > "${dir}/teleport.yaml"
-                log_message "success" "Config generee : ${dir}/teleport.yaml"
+                log_message "success" "Config generated: ${dir}/teleport.yaml"
                 ;;
             2)
                 local config
-                config=$(_prompt "Fichier de config" "${dir}/teleport.yaml")
+                config=$(_prompt "Config file" "${dir}/teleport.yaml")
                 if [[ ! -f "$config" ]]; then
-                    log_message "error" "Fichier de configuration introuvable : ${config}"
-                    log_message "info" "Utilisez l'option 1 pour generer la configuration d'abord"
+                    log_message "error" "Configuration file not found: ${config}"
+                    log_message "info" "Use option 1 to generate the configuration first"
                     wait_enter; continue
                 fi
                 echo ""
@@ -817,9 +817,9 @@ run_teleport() {
                 ;;
             5)
                 echo ""
-                tctl nodes ls 2>/dev/null || log_message "warning" "Serveur Teleport non accessible"
+                tctl nodes ls 2>/dev/null || log_message "warning" "Teleport server not accessible"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -834,67 +834,67 @@ run_malcolm() {
     dir=$(tool_dir malcolm)
 
     if [[ ! -d "$dir" ]]; then
-        log_message "error" "Malcolm non installe — utilisez l'option Installer depuis le menu"
+        log_message "error" "Malcolm not installed — use the Install option from the menu"
         wait_enter
         return
     fi
 
     while true; do
         _run_menu "MALCOLM" \
-            "Configurer (install.py)" \
-            "Demarrer" \
-            "Arreter" \
-            "Statut" \
+            "Configure (install.py)" \
+            "Start" \
+            "Stop" \
+            "Status" \
             "Logs"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
         case "$_run_choice" in
             1)
-                log_message "info" "Installation des dependances Python de Malcolm..."
-                # Malcolm requiert ruamel.yaml et python-dotenv — installer avant install.py
+                log_message "info" "Installing Malcolm Python dependencies..."
+                # Malcolm requires ruamel.yaml and python-dotenv — install before install.py
                 pip_install "ruamel.yaml" "python-dotenv" 2>/dev/null || true
-                # Fallback apt si pip_install n'a pas suffi
+                # apt fallback if pip_install was not enough
                 if ! python3 -c "import ruamel.yaml" 2>/dev/null; then
-                    log_message "info" "Tentative via apt..."
+                    log_message "info" "Trying via apt..."
                     apt-get install -y -qq python3-ruamel.yaml 2>/dev/null \
-                        || log_message "warning" "ruamel.yaml non disponible via apt"
+                        || log_message "warning" "ruamel.yaml not available via apt"
                 fi
                 if ! python3 -c "import dotenv" 2>/dev/null; then
                     apt-get install -y -qq python3-dotenv 2>/dev/null \
-                        || log_message "warning" "python-dotenv non disponible via apt"
+                        || log_message "warning" "python-dotenv not available via apt"
                 fi
-                log_message "info" "Lancement de la configuration Malcolm..."
+                log_message "info" "Launching Malcolm configuration..."
                 python3 "${dir}/scripts/install.py"
                 ;;
             2)
-                log_message "step" "Demarrage de Malcolm..."
+                log_message "step" "Starting Malcolm..."
                 python3 "${dir}/scripts/start.py"
                 ;;
             3)
-                log_message "step" "Arret de Malcolm..."
+                log_message "step" "Stopping Malcolm..."
                 python3 "${dir}/scripts/stop.py" 2>/dev/null \
                     || (cd "$dir" && $COMPOSE_CMD down 2>/dev/null) \
-                    || log_message "error" "Script d'arret introuvable"
+                    || log_message "error" "Stop script not found"
                 ;;
             4)
                 python3 "${dir}/scripts/status.py" 2>/dev/null \
                     || (cd "$dir" && $COMPOSE_CMD ps 2>/dev/null) \
-                    || log_message "warning" "Script de statut introuvable"
+                    || log_message "warning" "Status script not found"
                 ;;
             5)
                 local svc
-                svc=$(_prompt "Service (laisser vide = tous)" "")
+                svc=$(_prompt "Service (leave empty for all)" "")
                 echo ""
                 if [[ -n "$svc" ]]; then
                     compose_in_dir "$dir" logs --tail=100 "$svc" 2>/dev/null \
-                        || log_message "error" "Service introuvable : ${svc}"
+                        || log_message "error" "Service not found: ${svc}"
                 else
                     compose_in_dir "$dir" logs --tail=50 2>/dev/null \
-                        || log_message "error" "Compose non configure — lancez d'abord la configuration"
+                        || log_message "error" "Compose not configured — run configuration first"
                 fi
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
@@ -902,77 +902,77 @@ run_malcolm() {
 
 run_nmap() {
     if ! command_exists nmap; then
-        log_message "error" "nmap n'est pas installe — utilisez l'option Installer"
+        log_message "error" "nmap is not installed — use the Install option"
         wait_enter; return
     fi
     while true; do
         _run_menu "NMAP" \
-            "Scan rapide (top ports)" \
-            "Scan complet avec scripts" \
-            "Scan de detection de services" \
-            "Scan OT / Modbus" \
-            "Scan OT / BACnet" \
-            "Scan furtif (SYN)" \
-            "Generer rapport XML"
+            "Quick scan (top ports)" \
+            "Full scan with scripts" \
+            "Service detection scan" \
+            "OT / Modbus scan" \
+            "OT / BACnet scan" \
+            "Stealth scan (SYN)" \
+            "Generate XML report"
         [[ "${_run_choice,,}" == "b" ]] && return
 
         echo ""
         case "$_run_choice" in
             1)
                 local target
-                target=$(_prompt "Cible (IP / plage)" "192.168.1.0/24")
+                target=$(_prompt "Target (IP / range)" "192.168.1.0/24")
                 echo ""
                 nmap -F "$target"
                 ;;
             2)
                 _check_root || { wait_enter; continue; }
                 local target
-                target=$(_prompt "Cible (IP / plage)" "192.168.1.0/24")
+                target=$(_prompt "Target (IP / range)" "192.168.1.0/24")
                 echo ""
                 nmap -sV -sC -O "$target"
                 ;;
             3)
                 local target
-                target=$(_prompt "Cible (IP / plage)" "192.168.1.0/24")
+                target=$(_prompt "Target (IP / range)" "192.168.1.0/24")
                 echo ""
                 nmap -sV --version-intensity 5 "$target"
                 ;;
             4)
                 local target nse_dir="/usr/share/nmap/scripts"
                 if [[ ! -f "${nse_dir}/modbus-discover.nse" ]]; then
-                    log_message "warning" "Script modbus-discover absent — installez nmap-scripts ou une version recente de nmap"
+                    log_message "warning" "modbus-discover script missing — install nmap-scripts or a recent version of nmap"
                     wait_enter; continue
                 fi
-                target=$(_prompt "Cible (IP)" "192.168.1.100")
+                target=$(_prompt "Target (IP)" "192.168.1.100")
                 echo ""
                 nmap -p 502 --script modbus-discover "$target"
                 ;;
             5)
                 local target nse_dir="/usr/share/nmap/scripts"
                 if [[ ! -f "${nse_dir}/bacnet-info.nse" ]]; then
-                    log_message "warning" "Script bacnet-info absent — installez nmap-scripts ou une version recente de nmap"
+                    log_message "warning" "bacnet-info script missing — install nmap-scripts or a recent version of nmap"
                     wait_enter; continue
                 fi
-                target=$(_prompt "Cible (IP)" "192.168.1.100")
+                target=$(_prompt "Target (IP)" "192.168.1.100")
                 echo ""
                 nmap -p 47808 --script bacnet-info "$target"
                 ;;
             6)
                 _check_root || { wait_enter; continue; }
                 local target
-                target=$(_prompt "Cible (IP / plage)" "192.168.1.0/24")
+                target=$(_prompt "Target (IP / range)" "192.168.1.0/24")
                 echo ""
                 nmap -sS "$target"
                 ;;
             7)
                 local target output
-                target=$(_prompt "Cible (IP / plage)" "192.168.1.0/24")
-                output=$(_prompt "Fichier de sortie" "/tmp/nmap-scan.xml")
+                target=$(_prompt "Target (IP / range)" "192.168.1.0/24")
+                output=$(_prompt "Output file" "/tmp/nmap-scan.xml")
                 echo ""
                 nmap -sV -oX "$output" "$target"
-                log_message "success" "Rapport sauvegarde : ${output}"
+                log_message "success" "Report saved: ${output}"
                 ;;
-            *) log_message "error" "Choix invalide"; sleep 1; continue ;;
+            *) log_message "error" "Invalid choice"; sleep 1; continue ;;
         esac
         wait_enter
     done
