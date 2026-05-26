@@ -15,9 +15,8 @@ jobs:
     name: ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+      - name: Clone repository
+        run: git clone --depth 1 https://github.com/${{ github.repository }}.git .
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
       - name: Run shellcheck
@@ -32,9 +31,8 @@ jobs:
     name: Bash syntax (bash -n)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+      - name: Clone repository
+        run: git clone --depth 1 https://github.com/${{ github.repository }}.git .
       - name: Check bash syntax on every .sh
         run: |
           set -e
@@ -51,14 +49,12 @@ jobs:
     name: Source-chain smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+      - name: Clone repository
+        run: git clone --depth 1 https://github.com/${{ github.repository }}.git .
       - name: Source every lib/ file and assert key functions exist
         run: |
           set -uo pipefail
           export MEDUSA_HOME="$PWD"
-          # Source in the same order as medusa.sh
           for f in lib/core.sh lib/deploy_soc.sh lib/deploy_grc.sh \
                    lib/deploy_integration.sh lib/deploy_ot.sh \
                    lib/run_cli.sh lib/modules.sh; do
@@ -83,7 +79,6 @@ jobs:
             fi
           done
 
-          # Every tool registered must have a deploy_* dispatcher
           for tool in "${!TOOL_DESC[@]}"; do
             fn="deploy_${tool//-/_}"
             if ! declare -F "$fn" >/dev/null; then
