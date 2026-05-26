@@ -63,7 +63,7 @@ declare -p SCRIPT_NAME    &>/dev/null || readonly SCRIPT_NAME="Medusa, le regard
 declare -p BASE_DIR       &>/dev/null || readonly BASE_DIR="${MEDUSA_HOME:-$PWD}/medusa_deployments"
 declare -p UI_WIDTH       &>/dev/null || readonly UI_WIDTH=62
 COMPOSE_CMD=""
-ENV_NAME=""
+ENV_NAME="" # shellcheck disable=SC2034
 TOOLS_DIR=""
 
 # ============================================================================
@@ -91,9 +91,9 @@ clear_screen() {
 }
 
 ui_rule() {
-    printf "  ${CYAN}"
-    printf '%*s' "$UI_WIDTH" | tr ' ' '-'
-    printf "${RESET}\n"
+    printf '  %s' "${CYAN}"
+    printf '%*s' "$UI_WIDTH" '' | tr ' ' '-'
+    printf '%s\n' "${RESET}"
 }
 
 log_message() {
@@ -512,6 +512,7 @@ save_credentials() {
 # TOOL REGISTRY
 # ============================================================================
 
+# shellcheck disable=SC2034
 declare -A TOOL_DESC TOOL_CAT TOOL_TYPE
 
 register_tool() {

@@ -452,7 +452,7 @@ initialize_environment() {
     display_header
     if [[ -d "$BASE_DIR" ]]; then
         local existing_envs
-        existing_envs=($(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" 2>/dev/null | sort -r))
+        mapfile -t existing_envs < <(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" 2>/dev/null | sort -r)
 
         if [[ ${#existing_envs[@]} -gt 0 ]]; then
             echo "${BRIGHT_GREEN}│"
@@ -532,7 +532,7 @@ initialize_environment() {
             fi
 
             local envs
-            envs=($(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" 2>/dev/null | sort -r))
+            mapfile -t envs < <(find "$BASE_DIR" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" 2>/dev/null | sort -r)
 
             if [[ ${#envs[@]} -eq 0 ]]; then
                 log_message "error" "Aucun environnement existant"

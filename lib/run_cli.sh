@@ -25,6 +25,7 @@ dispatch_run() {
 # HELPER — saisie de paramètre optionnel
 # ============================================================================
 
+# shellcheck disable=SC2120
 _check_root() {
     if [[ $EUID -ne 0 ]]; then
         log_message "warning" "Cette operation necessite les droits root (sudo)"
