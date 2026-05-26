@@ -63,7 +63,8 @@ declare -p SCRIPT_NAME    &>/dev/null || readonly SCRIPT_NAME="Medusa, the gaze 
 declare -p BASE_DIR       &>/dev/null || readonly BASE_DIR="${MEDUSA_HOME:-$PWD}/medusa_deployments"
 declare -p UI_WIDTH       &>/dev/null || readonly UI_WIDTH=62
 COMPOSE_CMD=""
-ENV_NAME="" # shellcheck disable=SC2034
+# shellcheck disable=SC2034
+ENV_NAME=""
 TOOLS_DIR=""
 
 # ============================================================================
@@ -385,7 +386,11 @@ get_tool_status() {
     if [[ -n "$compose_file" ]] && [[ -n "$COMPOSE_CMD" ]]; then
         local compose_dir running
         compose_dir=$(dirname "$compose_file")
-        running=$(cd "$compose_dir" && $COMPOSE_CMD ps 2>/dev/null | grep -cE "Up|running" || true)
+        if running=$(cd "$compose_dir" && $COMPOSE_CMD ps 2>/dev/null | grep -cE "Up|running"); then
+            :
+        else
+            running=0
+        fi
         if [[ ! "$running" =~ ^[0-9]+$ ]]; then running=0; fi
         if [[ "$running" -gt 0 ]]; then
             echo "running"
@@ -517,7 +522,9 @@ declare -A TOOL_DESC TOOL_CAT TOOL_TYPE
 
 register_tool() {
     local name="$1" cat="$2" type="$3" desc="$4"
+    # shellcheck disable=SC2034
     TOOL_DESC["$name"]="$desc"
+    # shellcheck disable=SC2034
     TOOL_CAT["$name"]="$cat"
     TOOL_TYPE["$name"]="$type"
 }
