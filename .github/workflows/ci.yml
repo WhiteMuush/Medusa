@@ -7,20 +7,24 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
       - name: Run shellcheck
-        uses: ludeeus/action-shellcheck@master
-        env:
-          SHELLCHECK_OPTS: -e SC1091 -e SC2086 -e SC2155
-        with:
-          scandir: ./
-          additional_files: medusa.sh
-          ignore_paths: medusa_deployments
+        run: |
+          find . -type f -name '*.sh' \
+            -not -path './medusa_deployments/*' \
+            -print0 \
+          | xargs -0 shellcheck \
+              -e SC1091 -e SC2086 -e SC2155
 
   syntax:
     name: Bash syntax (bash -n)
