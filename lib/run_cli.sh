@@ -25,14 +25,13 @@ dispatch_run() {
 # HELPERS
 # ============================================================================
 
-# shellcheck disable=SC2120
 _check_root() {
     if [[ $EUID -ne 0 ]]; then
         log_message "warning" "This operation requires root privileges (sudo)"
         echo ""
         read -rp "  ${YELLOW}[?]${RESET} Relaunch with sudo? [y/N]: " _sudo_reply
         if [[ "${_sudo_reply,,}" =~ ^[oy]$ ]]; then
-            exec sudo "$0" "$@"
+            exec sudo "$0"
         fi
         return 1
     fi
