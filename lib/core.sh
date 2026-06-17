@@ -130,7 +130,7 @@ gen_uuid() {
 confirm() {
     local msg="${1:-Continue?}"
     read -rp "  ${YELLOW}[?]${RESET} ${msg} [y/N]: " reply
-    [[ "$reply" =~ ^[oOyY]$ ]]
+    [[ "${reply,,}" =~ ^(y|yes|o|oui)$ ]]
 }
 
 # prompt_value <label> [default]  → echoes the user input (or default if empty)
@@ -154,7 +154,7 @@ prompt_yesno() {
     fi
     read -rp "  ${YELLOW}[?]${RESET} ${msg} ${hint}: " reply
     reply="${reply:-$default}"
-    [[ "$reply" =~ ^[oOyY]$ ]]
+    [[ "${reply,,}" =~ ^(y|yes|o|oui)$ ]]
 }
 
 # run_in_dir <dir> <cmd...>  → runs cmd in a subshell so the parent shell
