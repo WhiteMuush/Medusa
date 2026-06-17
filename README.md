@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/WhiteMuush/Medusa/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Medusa/actions/workflows/ci.yml)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
 
 Medusa is a bash orchestration toolkit that deploys and manages **35 open-source cybersecurity tools** via an interactive menu or the command line.
 
@@ -249,13 +249,13 @@ ENV_NAME=lab_soc ./medusa.sh deploy wazuh
 
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md)
+Contributions are welcome. See [CONTRIBUTING.md](.github/CONTRIBUTING.md)
 for local setup, code conventions, and the PR checklist. The
 recipe for **adding a new tool** is in
 [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md), and the internal
 architecture is documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-To report a vulnerability, see [SECURITY.md](SECURITY.md) —
+To report a vulnerability, see [SECURITY.md](.github/SECURITY.md) —
 **do not open a public issue**.
 
 ## License
