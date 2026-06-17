@@ -78,7 +78,7 @@ deploy_vault() {
     cat > "${dir}/docker-compose.yml" << EOF
 services:
   vault:
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:1.21.4
     container_name: medusa-vault
     restart: unless-stopped
     cap_add:
@@ -158,7 +158,7 @@ deploy_owasp_zap() {
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
   zap:
-    image: zaproxy/zap-stable:latest
+    image: zaproxy/zap-stable:2.17.0
     container_name: medusa-owasp-zap
     ports:
       - "8090:8090"
@@ -267,7 +267,7 @@ deploy_falco() {
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
   falco:
-    image: falcosecurity/falco:latest
+    image: falcosecurity/falco:0.44.1
     container_name: medusa-falco
     restart: unless-stopped
     privileged: true

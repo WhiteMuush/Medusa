@@ -79,7 +79,7 @@ services:
       - db_data:/var/lib/mysql
 
   simplerisk:
-    image: simplerisk/simplerisk:latest
+    image: simplerisk/simplerisk:20260519-001
     container_name: medusa-simplerisk
     restart: unless-stopped
     depends_on:
@@ -162,7 +162,7 @@ deploy_gophish() {
     cat > "${dir}/docker-compose.yml" << 'EOF'
 services:
   gophish:
-    image: gophish/gophish:latest
+    image: gophish/gophish:0.12.1
     container_name: medusa-gophish
     restart: unless-stopped
     ports:

@@ -61,7 +61,7 @@ deploy_suricata() {
     cat > "${dir}/docker-compose.yml" << EOF
 services:
   suricata:
-    image: jasonish/suricata:latest
+    image: jasonish/suricata:8.0.5
     container_name: medusa-suricata
     restart: unless-stopped
     network_mode: host
@@ -182,7 +182,7 @@ services:
         hard: -1
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: medusa-opencti-minio
     restart: unless-stopped
     environment:
