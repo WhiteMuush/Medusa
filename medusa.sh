@@ -10,6 +10,10 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export MEDUSA_HOME="${SCRIPT_DIR}"
 
+# Original argv, preserved so a sudo re-exec (_check_root) resumes the same
+# command instead of dropping back to the default menu.
+MEDUSA_ARGV=("$@")
+
 # ============================================================================
 # MODULE LOADING (order is mandatory)
 # ============================================================================

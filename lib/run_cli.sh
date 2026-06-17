@@ -31,7 +31,7 @@ _check_root() {
         echo ""
         read -rp "  ${YELLOW}[?]${RESET} Relaunch with sudo? [y/N]: " _sudo_reply
         if [[ "${_sudo_reply,,}" =~ ^[oy]$ ]]; then
-            exec sudo "$0"
+            exec sudo "$0" "${MEDUSA_ARGV[@]}"
         fi
         return 1
     fi
