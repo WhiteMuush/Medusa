@@ -228,7 +228,7 @@ EOF
     echo -e "                                                    ${DIM}${SCRIPT_VERSION}${RESET}"
     echo -e "${BRIGHT_GREEN}╭────────────────────────────────────────────────────────────────╮"
     echo "│                                                                │"
-    echo -e "│          ${SCRIPT_NAME}         │"
+    echo -e "│  ${SCRIPT_NAME}       │"
     echo "│                                                                │"
     echo "╞────────────────────────────────────────────────────────────────╯"
 }
