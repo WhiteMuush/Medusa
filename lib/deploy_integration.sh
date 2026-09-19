@@ -172,8 +172,8 @@ EOF
 
     show_access_info "OWASP ZAP" \
         "URL:       http://localhost:8090/zap/" \
-        "Baseline:  docker exec medusa-owasp-zap zap-baseline.py -t <url>" \
-        "Full:      docker exec medusa-owasp-zap zap-full-scan.py -t <url>"
+        "Baseline:  ${CONTAINER_CMD:-docker} exec medusa-owasp-zap zap-baseline.py -t <url>" \
+        "Full:      ${CONTAINER_CMD:-docker} exec medusa-owasp-zap zap-full-scan.py -t <url>"
 
     log_message "success" "OWASP ZAP deployed successfully"
 }

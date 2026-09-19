@@ -63,6 +63,10 @@ declare -p SCRIPT_NAME    &>/dev/null || readonly SCRIPT_NAME="Medusa, the gaze 
 declare -p BASE_DIR       &>/dev/null || readonly BASE_DIR="${MEDUSA_HOME:-$PWD}/medusa_deployments"
 declare -p UI_WIDTH       &>/dev/null || readonly UI_WIDTH=62
 COMPOSE_CMD=""
+# Container runtime backing COMPOSE_CMD: "docker" or "podman" (set by
+# detect_compose_cmd). Read in modules.sh / deploy_integration.sh.
+# shellcheck disable=SC2034
+CONTAINER_CMD=""
 # shellcheck disable=SC2034
 ENV_NAME=""
 TOOLS_DIR=""
@@ -198,14 +202,32 @@ wait_enter() {
     read -rp "  ${DIM}Press Enter to continue...${RESET}"
 }
 
+# Map a compose command to the runtime that backs it.
+_container_cmd_for() {
+    case "$1" in
+        "docker compose"|docker-compose) echo "docker" ;;
+        "podman compose"|podman-compose) echo "podman" ;;
+        *)                               echo "" ;;
+    esac
+}
+
+# Detect an available compose implementation, docker first then podman, and
+# record both the compose command and its runtime. This is what makes Medusa
+# work on Fedora-family hosts (Fedora, Bazzite, RHEL) where podman is standard
+# and docker is often absent.
 detect_compose_cmd() {
+    COMPOSE_CMD=""
     if command_exists docker && docker compose version &>/dev/null 2>&1; then
         COMPOSE_CMD="docker compose"
     elif command_exists docker-compose; then
         COMPOSE_CMD="docker-compose"
-    else
-        COMPOSE_CMD=""
+    elif command_exists podman && podman compose version &>/dev/null 2>&1; then
+        COMPOSE_CMD="podman compose"
+    elif command_exists podman-compose; then
+        COMPOSE_CMD="podman-compose"
     fi
+    # shellcheck disable=SC2034  # read in modules.sh / deploy_integration.sh
+    CONTAINER_CMD="$(_container_cmd_for "$COMPOSE_CMD")"
 }
 
 # ============================================================================
@@ -277,8 +299,8 @@ show_access_info() {
 check_dependencies() {
     local missing=()
 
-    if ! command_exists docker; then
-        missing+=("docker")
+    if ! command_exists docker && ! command_exists podman; then
+        missing+=("docker or podman")
     fi
 
     if ! command_exists git; then
@@ -287,7 +309,7 @@ check_dependencies() {
 
     detect_compose_cmd
     if [[ -z "$COMPOSE_CMD" ]]; then
-        missing+=("docker-compose")
+        missing+=("a compose plugin (docker compose or podman-compose)")
     fi
 
     local recommended=("curl" "python3" "pip3" "openssl")
@@ -417,7 +439,7 @@ get_tool_status() {
 
 _require_compose() {
     if [[ -z "$COMPOSE_CMD" ]]; then
-        log_message "error" "docker compose not available — install Docker Desktop or docker-compose"
+        log_message "error" "No compose backend available. Install docker compose, or podman with podman-compose."
         return 1
     fi
     return 0
