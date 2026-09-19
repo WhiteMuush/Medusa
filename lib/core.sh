@@ -324,7 +324,20 @@ check_dependencies() {
 # DOCKER MANAGEMENT (generic)
 # ============================================================================
 
+# Reject tool names that could escape TOOLS_DIR or hit unintended paths.
+# Allowed: letters, digits, dot, underscore, hyphen. No empty value, no
+# slash, no ".." sequence. This guards the destructive rm -rf in
+# docker_remove and every other filesystem path built from a tool name.
+_validate_tool_name() {
+    local name="$1"
+    [[ -n "$name" ]]                     || return 1
+    [[ "$name" != *".."* ]]              || return 1
+    [[ "$name" =~ ^[A-Za-z0-9._-]+$ ]]   || return 1
+    return 0
+}
+
 tool_dir() {
+    _validate_tool_name "$1" || return 1
     echo "${TOOLS_DIR}/${1}"
 }
 
@@ -479,6 +492,10 @@ docker_restart() {
 
 docker_remove() {
     local tool="$1"
+    if ! _validate_tool_name "$tool"; then
+        log_message "error" "Refusing to remove: invalid tool name '${tool}'"
+        return 1
+    fi
     local dir
     dir=$(tool_dir "$tool")
     if [[ ! -d "$dir" ]]; then
