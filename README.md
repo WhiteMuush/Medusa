@@ -39,7 +39,7 @@ Non-interactive usage:
 ENV_NAME=audit_client ./medusa.sh deploy keycloak
 ```
 
-**Prerequisites**: `docker`, `docker compose` (or `docker-compose`), `git` required; `curl`, `python3`, `pip3`, `openssl` recommended. Run `./medusa.sh check` to verify.
+**Prerequisites**: a container runtime with a compose backend, and `git`. Docker (`docker compose` or `docker-compose`) and Podman (`podman compose` or `podman-compose`) are both supported, so Medusa runs on Debian, Fedora, Bazzite and other distros. On Fedora-family hosts install `podman-compose` (or the `podman compose` provider), since it is not always present by default. Recommended: `curl`, `python3`, `pip3`, `openssl`. Run `./medusa.sh check` to verify.
 
 ## Documentation
 

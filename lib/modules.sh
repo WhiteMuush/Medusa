@@ -277,11 +277,12 @@ module_stop_all() {
 
     # Safety net: stop any Docker containers prefixed with "medusa-"
     # that slipped through (e.g. containers started manually)
+    local runtime="${CONTAINER_CMD:-docker}"
     local leftover
-    mapfile -t leftover < <(docker ps -q --filter "name=medusa-" 2>/dev/null)
+    mapfile -t leftover < <("$runtime" ps -q --filter "name=medusa-" 2>/dev/null)
     if [[ ${#leftover[@]} -gt 0 ]]; then
         log_message "info" "Stopping leftover medusa containers..."
-        docker stop "${leftover[@]}" 2>/dev/null || true
+        "$runtime" stop "${leftover[@]}" 2>/dev/null || true
     fi
 
     echo ""
