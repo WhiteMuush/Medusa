@@ -88,3 +88,14 @@ jobs:
           done
 
           exit "$missing"
+
+  bats:
+    name: Bats unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        run: git clone --depth 1 https://github.com/${{ github.repository }}.git .
+      - name: Install bats
+        run: sudo apt-get install -y bats
+      - name: Run the test suite
+        run: bats tests/
