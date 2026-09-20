@@ -1,17 +1,17 @@
 # Adding a tool
 
-The most common contribution. Picking the right pattern below — CLI vs
-Docker — takes longer than writing the code.
+The most common contribution. Picking the right pattern below, CLI vs
+Docker, takes longer than writing the code.
 
 ## Decide the category and type
 
-- **Category** — `soc`, `grc`, `integration`, `ot`. Pick the one whose
+- **Category**: `soc`, `grc`, `integration`, `ot`. Pick the one whose
   description in the README's *Modules* section matches the tool. If
   it fits two, pick the one with the smaller current count.
-- **Type** — `docker` (the tool ships a compose file or you can write
+- **Type**: `docker` (the tool ships a compose file or you can write
   a small one) or `cli` (a binary you install via apt / pip / curl).
   Choose `cli` only when the upstream doesn't provide a usable Docker
-  image — most tools should be `docker`.
+  image, most tools should be `docker`.
 
 ## The 5-line recipe
 
@@ -120,7 +120,7 @@ If your CLI tool benefits from a guided menu (think `yara`, `nmap`,
 ```sh
 run_foo() {
     if ! command_exists foo; then
-        log_message error "foo n'est pas installe — utilisez l'option Installer"
+        log_message error "foo n'est pas installe, utilisez l'option Installer"
         wait_enter; return
     fi
     while true; do
@@ -144,7 +144,7 @@ run_foo() {
 }
 ```
 
-No additional registration needed — `dispatch_run` resolves `run_<tool>`
+No additional registration needed, `dispatch_run` resolves `run_<tool>`
 the same way `dispatch_deploy` resolves `deploy_<tool>`.
 
 ## Don't / Do
@@ -154,12 +154,12 @@ the same way `dispatch_deploy` resolves `deploy_<tool>`.
 | `cd "$dir" && docker compose up -d`                  | `compose_in_dir "$dir" up -d`                                            |
 | `echo -e "${RED}ERROR: ..."`                         | `log_message error "..."`                                                |
 | Hardcode a password in the compose file              | `gen_password 16` + `save_credentials`                                   |
-| Skip `mark_cli_installed` after a CLI install        | Always call it — that's how the dashboard knows the tool is present     |
+| Skip `mark_cli_installed` after a CLI install        | Always call it, that's how the dashboard knows the tool is present     |
 | `docker compose up` without `-d`                     | Always `-d`, otherwise the menu loop blocks forever                      |
 | Reuse a port already taken by another tool           | Check the *Ports* section of the README before picking                   |
 | Use `read -p` directly for a value with a default    | `prompt_value "Label" "default"`                                         |
 | `if [[ -f docker-compose.yml ]]; then ...` (no `$dir`) | `if [[ -f "${dir}/docker-compose.yml" ]]; then ...`                    |
-| Add a CHANGELOG entry per PR                         | Describe the change in the PR body — release notes are bundled per tag   |
+| Add a CHANGELOG entry per PR                         | Describe the change in the PR body, release notes are bundled per tag   |
 | Embed credentials in `show_access_info` _only_       | Also call `save_credentials` so they end up in `credentials.txt` chmod 600 |
 
 ## Checklist before opening the PR
@@ -171,5 +171,5 @@ shellcheck medusa.sh lib/*.sh
 ./medusa.sh deploy <your_tool>       # actually works
 ```
 
-Update the README's *Outils disponibles* and *Ports par défaut* tables —
+Update the README's *Outils disponibles* and *Ports par défaut* tables,
 those are the parts contributors actually read.
