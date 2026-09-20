@@ -5,7 +5,7 @@ toolkit and the goal is to keep it that way: an entry point, a handful of
 `lib/` files, and a registry of curated open-source security tools.
 
 If you only want to **add a tool**, jump to
-[`docs/ADDING_A_TOOL.md`](docs/ADDING_A_TOOL.md) — it's the recipe for the
+[`docs/ADDING_A_TOOL.md`](docs/ADDING_A_TOOL.md), it's the recipe for the
 most common contribution.
 
 ## Ground rules
@@ -14,7 +14,7 @@ most common contribution.
 - Open an issue before sending a non-trivial PR. For new tools, the
   [tool request issue template](.github/ISSUE_TEMPLATE/tool_request.yml)
   is the right starting point.
-- Keep PRs focused. One tool, one bug fix, one refactor — not all three.
+- Keep PRs focused. One tool, one bug fix, one refactor, not all three.
 
 ## Local setup
 
@@ -40,7 +40,7 @@ Run the menu without deploying anything:
 
 - Shebang: `#!/usr/bin/env bash`.
 - Strict mode in entry points: `set -uo pipefail` (intentionally **not**
-  `-e` — a single `read` returning non-zero would tear down the menu loop).
+  `-e`, a single `read` returning non-zero would tear down the menu loop).
 - Quote variables: `"${var}"`, not `$var`.
 - Function naming: `snake_case`. Internal helpers prefix with `_`
   (e.g. `_require_compose`, `_oscap_detect_ds`). Deployers are named
@@ -53,7 +53,7 @@ Run the menu without deploying anything:
   _MY_FILE_SH_LOADED=1
   ```
 
-- Never use a raw `cd "$dir"` in a function — it leaks the working
+- Never use a raw `cd "$dir"` in a function, it leaks the working
   directory back into the menu loop and breaks all subsequent relative
   paths. Use `compose_in_dir` / `run_in_dir` (defined in `core.sh`) or
   an explicit subshell.
@@ -83,11 +83,11 @@ All defined in `lib/core.sh`:
 ## Validation before opening a PR
 
 ```sh
-# Syntax — both must be clean
+# Syntax: both must be clean
 bash -n medusa.sh lib/*.sh
 shellcheck medusa.sh lib/*.sh
 
-# Smoke — source chain and registered tools all resolve
+# Smoke: source chain and registered tools all resolve
 MEDUSA_HOME="$PWD" bash -c '
   for f in lib/core.sh lib/deploy_soc.sh lib/deploy_grc.sh \
            lib/deploy_integration.sh lib/deploy_ot.sh \
@@ -103,7 +103,7 @@ CI runs the same three checks (`.github/workflows/ci.yml`).
 ## Commit messages
 
 Conventional prefixes are nice but not enforced. The signal is in the
-body — explain **why** more than **what**. Examples that are useful:
+body, explain **why** more than **what**. Examples that are useful:
 
 - `feat(soc): add Falco runtime detection`
 - `fix(core): docker_down no longer leaks cwd into the menu loop`

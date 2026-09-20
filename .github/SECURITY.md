@@ -3,14 +3,14 @@
 ## Scope
 
 Medusa is an **orchestrator**. It does not implement security primitives
-itself — it wraps Docker Compose stacks, CLI installers, and a few helper
+itself, it wraps Docker Compose stacks, CLI installers, and a few helper
 functions around 35 upstream open-source security tools.
 
 That means there are two distinct disclosure paths:
 
 | Vulnerability is in...                              | Report to...                                    |
 |-----------------------------------------------------|-------------------------------------------------|
-| The wrapper itself (Medusa code, compose templates) | This project — see "Reporting" below            |
+| The wrapper itself (Medusa code, compose templates) | This project, see "Reporting" below            |
 | An upstream tool (Wazuh, OpenCTI, Suricata, ...)    | That tool's own security policy / disclosure    |
 
 Examples of what's **in scope** for this project:
@@ -25,17 +25,17 @@ Examples of what's **in scope** for this project:
 
 Examples of what's **out of scope**:
 
-- A CVE in Wazuh, MISP, OpenCTI, etc. — open an issue with the upstream
-- "Falco runs as privileged" — that is by design and documented in the
+- A CVE in Wazuh, MISP, OpenCTI, etc., open an issue with the upstream
+- "Falco runs as privileged", that is by design and documented in the
   compose file, file an issue if you want to discuss the trade-off
-- Vault is in dev mode by default — also intentional and warned about in
+- Vault is in dev mode by default, also intentional and warned about in
   the deploy output and the README
 
 ## Reporting
 
 **Do not open a public GitHub issue for security reports.**
 
-Use GitHub Security Advisories instead — it lets us discuss privately,
+Use GitHub Security Advisories instead, it lets us discuss privately,
 prepare a fix, and coordinate disclosure:
 
 [**→ Report a vulnerability**](https://github.com/WhiteMuush/Medusa/security/advisories/new)

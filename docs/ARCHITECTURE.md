@@ -19,7 +19,7 @@ medusa/
 │                              dashboard, "start all" / "stop all",
 │                              environment selection at startup.
 │   ├── run_cli.sh             Sub-menus for CLI tools (yara, sigma,
-│                              trivy, semgrep, nmap, prowler, ...) —
+│                              trivy, semgrep, nmap, prowler, ...),
 │                              dispatched by `run_<tool>`.
 │   ├── deploy_soc.sh          14 SOC tool deployers (Wazuh, OpenCTI,
 │                              MISP, Cortex, Velociraptor, ...).
@@ -60,17 +60,17 @@ register_tool "wazuh" "soc" "docker" "SIEM/XDR - Detection, reponse, conformite"
 #               name   cat   type     description
 ```
 
-Three parallel associative arrays — `TOOL_DESC`, `TOOL_CAT`, `TOOL_TYPE` — are
+Three parallel associative arrays, `TOOL_DESC`, `TOOL_CAT`, `TOOL_TYPE`, are
 populated. Everything that needs to iterate tools (menu, dashboard, "start
 all", `list` CLI) reads from these.
 
 `type` is one of:
 
-- `docker` — the deployer writes a `docker-compose.yml` (or clones an
+- `docker`: the deployer writes a `docker-compose.yml` (or clones an
   upstream repo that contains one) and runs `docker compose up -d`
-- `cli` — the deployer installs a CLI binary (`apt`, `pip`, `curl | sh`,
+- `cli`: the deployer installs a CLI binary (`apt`, `pip`, `curl | sh`,
   `go install`) and marks the tool installed with `mark_cli_installed`
-- `vm` — instructions only, no automation (Security Onion ISO,
+- `vm`: instructions only, no automation (Security Onion ISO,
   GRASSMARLIN Java jar, GRFICSv2 lab)
 
 ## Dispatchers
@@ -91,7 +91,7 @@ dispatch_run() {
 }
 ```
 
-This is what makes the "add a tool in 5 lines" pattern work — you only
+This is what makes the "add a tool in 5 lines" pattern work, you only
 need to define `deploy_<tool>` (and optionally `run_<tool>`) and add a
 `register_tool` line. Nothing else has to be wired up.
 
@@ -99,16 +99,16 @@ need to define `deploy_<tool>` (and optionally `run_<tool>`) and add a
 
 A tool is in one of these states (see `get_tool_status` in `core.sh`):
 
-- `not_installed` — no marker file, no binary on PATH
-- `cli_installed` — marker file `.installed` exists or `command -v <tool>` succeeds
-- `installed` — Docker tool with a compose file but no running container
-- `running` — Docker tool with at least one container reporting `Up`
-- `stopped` — Docker tool with a compose file but every container is down
+- `not_installed`: no marker file, no binary on PATH
+- `cli_installed`: marker file `.installed` exists or `command -v <tool>` succeeds
+- `installed`: Docker tool with a compose file but no running container
+- `running`: Docker tool with at least one container reporting `Up`
+- `stopped`: Docker tool with a compose file but every container is down
 
 The state determines which actions the per-tool menu offers
 (Start/Stop/Logs for Docker, Run/Reinstall/Remove for CLI).
 
-## Helpers — the contract
+## Helpers: the contract
 
 CLI installers are expected to use:
 
@@ -122,7 +122,7 @@ deploy_<tool>() {
 }
 ```
 
-Docker deployers should never `cd` directly — they use `compose_in_dir`
+Docker deployers should never `cd` directly, they use `compose_in_dir`
 to run inside the tool directory without leaking the working directory:
 
 ```sh
@@ -162,4 +162,4 @@ auto-generated).
 
 ## Adding a tool
 
-See [`ADDING_A_TOOL.md`](ADDING_A_TOOL.md) — that's the 5-minute recipe.
+See [`ADDING_A_TOOL.md`](ADDING_A_TOOL.md), that's the 5-minute recipe.
