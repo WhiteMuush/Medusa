@@ -5,7 +5,7 @@
 [![Wiki](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/WhiteMuush/Medusa/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
 
-Medusa is a Bash orchestration toolkit that deploys and manages **35 open-source cybersecurity tools** through an interactive menu or the command line. Each tool runs isolated in its own directory, grouped into named environments, deployed via Docker Compose or installed as a CLI binary.
+**Medusa** stands up a full blue-team and security lab from one Bash menu or the command line: **35 open-source tools** across SOC, GRC, Integration and OT. Each tool runs isolated in its own directory, grouped into named environments, deployed via Docker or Podman Compose or installed as a CLI binary.
 
 ---
 
